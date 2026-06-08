@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0f1923">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pedro 32">
+<title>Pedro #32 · Rugby Tracker</title>
+<style>
+  :root{
+    --bg:#0f1923; --bg2:#16232f; --card:#1b2b3a; --card2:#223648;
+    --line:#2c4254; --txt:#eaf2f8; --mut:#8aa3b5;
+    --pos:#2ecc71; --neg:#e74c3c; --warn:#f1c40f; --acc:#3da9fc; --gold:#ffd24a;
+    --green:#2ecc71; --yellow:#f1c40f; --red:#e74c3c;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+  body{padding:env(safe-area-inset-top) env(safe-area-inset-right) calc(72px + env(safe-area-inset-bottom)) env(safe-area-inset-left)}
+
+  /* HEADER */
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,var(--bg2),rgba(15,25,35,.92));
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 14px}
+  .htop{display:flex;align-items:center;gap:10px}
+  .badge{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#1f6feb,#0a3a72);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;
+    box-shadow:0 2px 8px rgba(0,0,0,.4)}
+  .hinfo{flex:1;min-width:0}
+  .hinfo b{font-size:16px;display:block;line-height:1.1}
+  .hinfo small{color:var(--mut);font-size:12px}
+  .rival input{background:var(--card);border:1px solid var(--line);color:var(--txt);
+    border-radius:8px;padding:4px 8px;font-size:12px;width:100%;margin-top:3px}
+
+  /* MINUTE */
+  .clock{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:4px 6px}
+  .clock button{width:34px;height:34px;border:none;border-radius:9px;background:var(--card2);
+    color:var(--txt);font-size:20px;font-weight:700;line-height:1}
+  .clock .min{min-width:52px;text-align:center}
+  .clock .min b{font-size:20px;font-variant-numeric:tabular-nums}
+  .clock .min small{display:block;font-size:9px;color:var(--mut);letter-spacing:.5px}
+  .half{display:flex;gap:6px;margin-top:8px}
+  .half button{flex:1;background:var(--card);border:1px solid var(--line);color:var(--mut);
+    border-radius:8px;padding:5px;font-size:12px;font-weight:600}
+  .half button.on{background:var(--acc);color:#04263f;border-color:var(--acc)}
+
+  /* TABS */
+  nav{position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;
+    background:rgba(22,35,47,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom)}
+  nav button{flex:1;background:none;border:none;color:var(--mut);padding:9px 4px 8px;
+    font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+  nav button .ic{font-size:20px;line-height:1}
+  nav button.on{color:var(--acc)}
+
+  main{padding:12px 12px 0}
+  .view{display:none}.view.on{display:block;animation:fade .18s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* ACTION GRID */
+  .sect{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;
+    margin:14px 2px 8px;font-weight:700}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .act{position:relative;border:none;border-radius:16px;padding:16px 10px 12px;
+    background:var(--card);color:var(--txt);display:flex;flex-direction:column;align-items:center;gap:6px;
+    box-shadow:0 2px 6px rgba(0,0,0,.3);transition:transform .07s}
+  .act:active{transform:scale(.93)}
+  .act .ai{font-size:30px;line-height:1}
+  .act .al{font-size:13px;font-weight:700;text-align:center}
+  .act .ap{font-size:10px;color:var(--mut)}
+  .act.neg{background:linear-gradient(160deg,#2a1d22,#3a2128)}
+  .act.pos{background:linear-gradient(160deg,#16322a,var(--card))}
+  .act .cnt{position:absolute;top:6px;right:8px;background:var(--acc);color:#04263f;
+    font-size:11px;font-weight:800;min-width:20px;height:20px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;padding:0 5px}
+  .act.neg .cnt{background:var(--neg);color:#fff}
+
+  /* NOTE */
+  .noterow{display:flex;gap:8px;margin-top:10px}
+  .noterow input{flex:1;background:var(--card);border:1px solid var(--line);color:var(--txt);
+    border-radius:10px;padding:11px;font-size:14px}
+  .nbtn{border:none;border-radius:10px;width:46px;font-size:20px;font-weight:700}
+  .nbtn.good{background:rgba(46,204,113,.18);color:var(--green)}
+  .nbtn.bad{background:rgba(231,76,60,.18);color:var(--red)}
+
+  /* TIMELINE */
+  .tl{margin-top:6px}
+  .ev{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line)}
+  .ev .et{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums;width:42px;flex-shrink:0}
+  .ev .ee{font-size:18px;width:24px;text-align:center}
+  .ev .ed{flex:1;font-size:14px}
+  .ev .ed small{display:block;color:var(--mut);font-size:12px}
+  .ev .ex{color:var(--mut);font-size:18px;padding:2px 8px;border:none;background:none}
+  .empty{color:var(--mut);text-align:center;padding:30px 10px;font-size:14px}
+
+  /* KPI */
+  .impact{background:linear-gradient(135deg,#10334f,#0a2238);border:1px solid var(--line);
+    border-radius:18px;padding:18px;text-align:center;margin-bottom:14px}
+  .impact .big{font-size:54px;font-weight:800;line-height:1}
+  .impact .lab{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:1px}
+  .stars{font-size:26px;letter-spacing:4px;margin-top:6px}
+  .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;position:relative}
+  .kpi .kv{font-size:26px;font-weight:800}
+  .kpi .kl{font-size:12px;color:var(--mut);margin-top:2px}
+  .dot{position:absolute;top:12px;right:12px;width:12px;height:12px;border-radius:50%}
+  .dot.g{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .dot.y{background:var(--yellow);box-shadow:0 0 8px var(--yellow)}
+  .dot.r{background:var(--red);box-shadow:0 0 8px var(--red)}
+
+  /* SEASON */
+  .chartcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:12px}
+  .chartcard h4{margin:0 0 8px;font-size:13px;color:var(--mut);font-weight:700}
+  canvas{width:100%;display:block}
+  .mcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+  .mcard .mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .mcard .mh b{font-size:15px}
+  .mcard .mh small{color:var(--mut);font-size:12px}
+  .mcard .mstats{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:var(--card2);border-radius:8px;padding:4px 8px;font-size:12px}
+  .chip b{color:var(--acc)}
+
+  /* BUTTONS */
+  .btnrow{display:flex;gap:10px;margin:14px 0}
+  .btn{flex:1;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;color:#fff}
+  .btn.primary{background:var(--acc);color:#04263f}
+  .btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--txt)}
+  .btn.danger{background:rgba(231,76,60,.15);color:var(--red);border:1px solid rgba(231,76,60,.4)}
+  .hint{color:var(--mut);font-size:12px;text-align:center;margin:8px 4px 18px;line-height:1.5}
+
+  /* TOAST */
+  #toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#04263f;border:1px solid var(--acc);color:#eaf2f8;padding:9px 16px;border-radius:20px;
+    font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:.2s;z-index:50;white-space:nowrap}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  textarea#csvout{width:100%;height:120px;background:var(--card);color:var(--txt);
+    border:1px solid var(--line);border-radius:10px;padding:10px;font-size:11px;font-family:monospace}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="htop">
+    <div class="badge">32</div>
+    <div class="hinfo">
+      <b>Pedro · #32</b>
+      <div class="rival"><input id="rival" placeholder="Rival / partido de hoy…"></div>
+    </div>
+    <div class="clock">
+      <button id="mDown">−</button>
+      <div class="min"><b id="minLbl">0</b><small>MIN</small></div>
+      <button id="mUp">+</button>
+    </div>
+  </div>
+  <div class="half">
+    <button id="h1" class="on" data-h="1">1er tiempo</button>
+    <button id="h2" data-h="2">2do tiempo</button>
+  </div>
+</header>
+
+<main>
+  <!-- REGISTRAR -->
+  <section class="view on" id="v-reg">
+    <div class="sect">Acciones positivas</div>
+    <div class="grid" id="gridPos"></div>
+    <div class="sect">Errores / contras</div>
+    <div class="grid" id="gridNeg"></div>
+
+    <div class="sect">Nota de observación</div>
+    <div class="noterow">
+      <input id="noteTxt" placeholder="Ej: buena lectura en el ruck…">
+      <button class="nbtn good" id="noteGood">✅</button>
+      <button class="nbtn bad" id="noteBad">⚠️</button>
+    </div>
+
+    <div class="sect">Línea de tiempo del partido</div>
+    <div class="tl" id="timeline"></div>
+  </section>
+
+  <!-- KPIS -->
+  <section class="view" id="v-kpi">
+    <div class="impact">
+      <div class="lab">Puntaje de impacto</div>
+      <div class="big" id="impactVal">0</div>
+      <div class="stars" id="starsVal">☆☆☆☆☆</div>
+    </div>
+    <div class="kpis" id="kpiGrid"></div>
+    <div class="hint">Los semáforos se actualizan en vivo a medida que registrás acciones.</div>
+  </section>
+
+  <!-- TEMPORADA -->
+  <section class="view" id="v-sea">
+    <div id="seasonCharts"></div>
+    <div class="sect">Partidos registrados</div>
+    <div id="matchList"></div>
+
+    <div class="sect">Exportar a Google Sheets</div>
+    <div class="btnrow">
+      <button class="btn primary" id="csvCopy">Copiar CSV</button>
+      <button class="btn ghost" id="csvDownload">Descargar CSV</button>
+    </div>
+    <textarea id="csvout" readonly placeholder="El CSV de la temporada aparece acá…"></textarea>
+    <div class="hint">Pegá en Google Sheets · Archivo > Importar para historial completo.</div>
+  </section>
+</main>
+
+<nav>
+  <button class="on" data-v="reg"><span class="ic">🏉</span>Registrar</button>
+  <button data-v="kpi"><span class="ic">📊</span>KPIs</button>
+  <button data-v="sea"><span class="ic">📈</span>Temporada</button>
+</nav>
+
+<!-- FINALIZAR (in REGISTRAR footer area, shown via main flow) -->
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ---------- CONFIG ---------- */
+var ACTIONS = [
+  {key:"tackle",        label:"Tackle",        ic:"🛡️", pts:2,  cat:"pos"},
+  {key:"carry",         label:"Acarreo",       ic:"💥", pts:1,  cat:"pos"},
+  {key:"ruck",          label:"Ruck",          ic:"🔧", pts:1,  cat:"pos"},
+  {key:"pase",          label:"Pase",          ic:"➡️", pts:0.5,cat:"pos"},
+  {key:"quiebre",       label:"Quiebre",       ic:"⚡", pts:3,  cat:"pos"},
+  {key:"recuperacion",  label:"Recuperación",  ic:"🤲", pts:4,  cat:"pos"},
+  {key:"patada",        label:"Patada",        ic:"🦵", pts:1,  cat:"pos"},
+  {key:"try",           label:"Try",           ic:"🏉", pts:6,  cat:"pos"},
+  {key:"tackle_fallado",label:"Tackle fallado",ic:"❌", pts:-2, cat:"neg"},
+  {key:"penal",         label:"Penal",         ic:"⚠️", pts:-2, cat:"neg"},
+  {key:"error",         label:"Error/Knock-on",ic:"🔻", pts:-2, cat:"neg"}
+];
+var AMAP = {}; ACTIONS.forEach(function(a){AMAP[a.key]=a;});
+
+/* ---------- STATE ---------- */
+var LS_CUR="p32_current", LS_SEA="p32_season";
+var cur = load(LS_CUR) || newMatch();
+var season = load(LS_SEA) || [];
+
+function newMatch(){return {rival:"",minute:0,half:1,events:[]};}
+function load(k){try{var v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
+function save(){try{localStorage.setItem(LS_CUR,JSON.stringify(cur));localStorage.setItem(LS_SEA,JSON.stringify(season));}catch(e){}}
+function $(s){return document.querySelector(s);}
+function el(t,c){var e=document.createElement(t);if(c)e.className=c;return e;}
+
+/* ---------- HAPTIC + TOAST ---------- */
+function buzz(ms){if(navigator.vibrate)navigator.vibrate(ms||18);}
+var toastT;
+function toast(msg){var t=$("#toast");t.textContent=msg;t.classList.add("show");
+  clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("show");},1300);}
+
+/* ---------- BUILD ACTION GRID ---------- */
+function buildGrid(){
+  var gp=$("#gridPos"), gn=$("#gridNeg");gp.innerHTML="";gn.innerHTML="";
+  ACTIONS.forEach(function(a){
+    var b=el("button","act "+a.cat);
+    b.innerHTML='<span class="cnt" data-c="'+a.key+'" style="display:none">0</span>'+
+      '<span class="ai">'+a.ic+'</span><span class="al">'+a.label+'</span>'+
+      '<span class="ap">'+(a.pts>0?"+":"")+a.pts+'</span>';
+    b.onclick=function(){addEvent(a.key);};
+    (a.cat==="pos"?gp:gn).appendChild(b);
+  });
+}
+
+/* ---------- EVENTS ---------- */
+function addEvent(key,note,noteKind){
+  cur.events.push({t:cur.minute,half:cur.half,key:key,note:note||"",nk:noteKind||""});
+  buzz(noteKind?12:20); save(); render();
+  if(!note) toast(AMAP[key].ic+" "+AMAP[key].label+" · "+cur.minute+"'");
+}
+function delEvent(i){cur.events.splice(i,1);buzz(10);save();render();}
+
+/* ---------- MINUTE / HALF ---------- */
+function setMin(m){cur.minute=Math.max(0,m);$("#minLbl").textContent=cur.minute;save();}
+$("#mUp").onclick=function(){setMin(cur.minute+1);buzz(8);};
+$("#mDown").onclick=function(){setMin(cur.minute-1);buzz(8);};
+$("#h1").onclick=function(){setHalf(1);};
+$("#h2").onclick=function(){setHalf(2);};
+function setHalf(h){cur.half=h;$("#h1").classList.toggle("on",h===1);$("#h2").classList.toggle("on",h===2);save();}
+
+/* ---------- NOTE ---------- */
+$("#noteGood").onclick=function(){pushNote("good");};
+$("#noteBad").onclick=function(){pushNote("bad");};
+function pushNote(kind){
+  var inp=$("#noteTxt"), txt=inp.value.trim();
+  if(!txt){toast("Escribí una nota primero");return;}
+  addEvent("nota",txt,kind);inp.value="";
+  toast((kind==="good"?"✅":"⚠️")+" Nota guardada");
+}
+
+/* ---------- STATS ---------- */
+function counts(events){
+  var c={};ACTIONS.forEach(function(a){c[a.key]=0;});
+  events.forEach(function(e){if(c[e.key]!==undefined)c[e.key]++;});
+  return c;
+}
+function impactOf(events){
+  var s=0;events.forEach(function(e){if(AMAP[e.key])s+=AMAP[e.key].pts;});
+  return Math.round(s*10)/10;
+}
+function starsOf(imp){
+  if(imp<5)return 1; if(imp<12)return 2; if(imp<20)return 3; if(imp<30)return 4; return 5;
+}
+function starStr(n){var s="";for(var i=0;i<5;i++)s+=i<n?"★":"☆";return s;}
+
+/* ---------- TIMELINE ---------- */
+function renderTimeline(){
+  var tl=$("#timeline");tl.innerHTML="";
+  if(!cur.events.length){tl.innerHTML='<div class="empty">Sin acciones todavía.<br>Tocá un botón para registrar.</div>';return;}
+  for(var i=cur.events.length-1;i>=0;i--){
+    (function(i){
+      var e=cur.events[i], row=el("div","ev");
+      var isNote=e.key==="nota";
+      var ic=isNote?(e.nk==="good"?"✅":"⚠️"):(AMAP[e.key]?AMAP[e.key].ic:"•");
+      var label=isNote?e.note:(AMAP[e.key]?AMAP[e.key].label:e.key);
+      row.innerHTML='<span class="et">'+e.t+"' · T"+e.half+'</span><span class="ee">'+ic+'</span>'+
+        '<span class="ed">'+label+(isNote?'<small>nota de observación</small>':'')+'</span>';
+      var x=el("button","ex");x.textContent="✕";x.onclick=function(){delEvent(i);};
+      row.appendChild(x);tl.appendChild(row);
+    })(i);
+  }
+}
+
+/* ---------- KPIs ---------- */
+function renderKPIs(){
+  var c=counts(cur.events), imp=impactOf(cur.events), st=starsOf(imp);
+  $("#impactVal").textContent=(imp>0?"+":"")+imp;
+  $("#starsVal").textContent=starStr(st);
+
+  var tkTot=c.tackle+c.tackle_fallado;
+  var tkEff=tkTot?Math.round(c.tackle/tkTot*100):null;
+  var partic=c.tackle+c.carry+c.ruck+c.pase;
+  var errs=c.tackle_fallado+c.penal+c.error;
+
+  var items=[
+    {v:tkEff===null?"—":tkEff+"%", l:"Efectividad tackle",
+      d: tkEff===null?"y":(tkEff>=80?"g":tkEff>=60?"y":"r")},
+    {v:partic, l:"Participaciones", d: partic>=12?"g":partic>=6?"y":"r"},
+    {v:errs, l:"Errores", d: errs<=1?"g":errs<=3?"y":"r"},
+    {v:c.recuperacion, l:"Recuperaciones", d: c.recuperacion>=2?"g":c.recuperacion>=1?"y":"r"},
+    {v:c.carry, l:"Acarreos", d: c.carry>=5?"g":c.carry>=2?"y":"r"},
+    {v:c.try, l:"Tries", d: c.try>=1?"g":"y"}
+  ];
+  var g=$("#kpiGrid");g.innerHTML="";
+  items.forEach(function(it){
+    var k=el("div","kpi");
+    k.innerHTML='<span class="dot '+it.d+'"></span><div class="kv">'+it.v+'</div><div class="kl">'+it.l+'</div>';
+    g.appendChild(k);
+  });
+}
+
+/* ---------- SEASON ---------- */
+function renderSeason(){
+  var host=$("#seasonCharts");host.innerHTML="";
+  var list=$("#matchList");list.innerHTML="";
+
+  if(!season.length){
+    list.innerHTML='<div class="empty">Todavía no finalizaste ningún partido.<br>Al terminar, tocá “Finalizar partido”.</div>';
+  }else{
+    // charts
+    var imps=season.map(function(m){return m.impact;});
+    var tks=season.map(function(m){return m.counts.tackle;});
+    var parts=season.map(function(m){return m.counts.tackle+m.counts.carry+m.counts.ruck+m.counts.pase;});
+    host.appendChild(chartCard("Impacto por partido",imps,"#3da9fc"));
+    host.appendChild(chartCard("Tackles por partido",tks,"#2ecc71"));
+    host.appendChild(chartCard("Participaciones por partido",parts,"#ffd24a"));
+    // match cards (newest first)
+    for(var i=season.length-1;i>=0;i--){
+      (function(i){
+        var m=season[i], card=el("div","mcard");
+        var partic=m.counts.tackle+m.counts.carry+m.counts.ruck+m.counts.pase;
+        card.innerHTML='<div class="mh"><b>'+(m.rival||"Partido")+'</b><small>'+m.date+'</small></div>'+
+          '<div style="margin-bottom:6px">'+starStr(m.stars)+
+          '  <span style="color:var(--acc);font-weight:800;margin-left:6px">'+(m.impact>0?"+":"")+m.impact+' pts</span></div>'+
+          '<div class="mstats">'+
+            chip("Tackles",m.counts.tackle)+chip("Acarreos",m.counts.carry)+
+            chip("Rucks",m.counts.ruck)+chip("Tries",m.counts.try)+
+            chip("Recup.",m.counts.recuperacion)+chip("Particip.",partic)+'</div>';
+        var del=el("button","btn danger");del.textContent="Borrar partido";del.style.marginTop="8px";
+        del.onclick=function(){if(confirm("¿Borrar este partido del historial?")){season.splice(i,1);save();renderSeason();}};
+        card.appendChild(del);
+        list.appendChild(card);
+      })(i);
+    }
+  }
+  buildCSV();
+}
+function chip(l,v){return '<span class="chip">'+l+' <b>'+v+'</b></span>';}
+function chartCard(title,data,color){
+  var c=el("div","chartcard");c.innerHTML='<h4>'+title+'</h4>';
+  var cv=el("canvas");c.appendChild(cv);
+  setTimeout(function(){drawChart(cv,data,color);},0);
+  return c;
+}
+function drawChart(cv,data,color){
+  var dpr=window.devicePixelRatio||1, W=cv.clientWidth||300, H=110;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
+  var x=cv.getContext("2d");x.scale(dpr,dpr);
+  x.clearRect(0,0,W,H);
+  if(!data.length)return;
+  var pad=18, mx=Math.max.apply(null,data.concat([1])), mn=Math.min.apply(null,data.concat([0]));
+  var rng=(mx-mn)||1;
+  function px(i){return data.length>1?pad+i*(W-2*pad)/(data.length-1):W/2;}
+  function py(v){return H-pad-(v-mn)/rng*(H-2*pad);}
+  // zero line
+  x.strokeStyle="rgba(255,255,255,.08)";x.beginPath();x.moveTo(pad,py(Math.max(0,mn)));x.lineTo(W-pad,py(Math.max(0,mn)));x.stroke();
+  // line
+  x.strokeStyle=color;x.lineWidth=2.5;x.beginPath();
+  data.forEach(function(v,i){i?x.lineTo(px(i),py(v)):x.moveTo(px(i),py(v));});x.stroke();
+  // dots + labels
+  data.forEach(function(v,i){
+    x.fillStyle=color;x.beginPath();x.arc(px(i),py(v),3.5,0,7);x.fill();
+    x.fillStyle="#cfe0ec";x.font="10px sans-serif";x.textAlign="center";
+    x.fillText(v,px(i),py(v)-8);
+  });
+}
+
+/* ---------- CSV ---------- */
+function buildCSV(){
+  var rows=[["Fecha","Rival","Impacto","Estrellas","Tackles","TackleFallado","Acarreos","Rucks","Pases","Quiebres","Recuperaciones","Patadas","Tries","Penales","Errores","Participaciones"]];
+  season.forEach(function(m){
+    var c=m.counts, partic=c.tackle+c.carry+c.ruck+c.pase;
+    rows.push([m.date,(m.rival||"").replace(/,/g," "),m.impact,m.stars,c.tackle,c.tackle_fallado,c.carry,c.ruck,c.pase,c.quiebre,c.recuperacion,c.patada,c.try,c.penal,c.error,partic]);
+  });
+  var csv=rows.map(function(r){return r.join(",");}).join("\n");
+  $("#csvout").value=csv; return csv;
+}
+$("#csvCopy").onclick=function(){
+  var csv=buildCSV();
+  if(navigator.clipboard){navigator.clipboard.writeText(csv).then(function(){toast("CSV copiado ✓");});}
+  else{$("#csvout").select();document.execCommand("copy");toast("CSV copiado ✓");}
+  buzz(15);
+};
+$("#csvDownload").onclick=function(){
+  var csv=buildCSV(), blob=new Blob([csv],{type:"text/csv"});
+  var a=el("a");a.href=URL.createObjectURL(blob);
+  a.download="pedro32_temporada.csv";a.click();buzz(15);toast("Descargando CSV…");
+};
+
+/* ---------- FINALIZAR PARTIDO ---------- */
+function finalizeMatch(){
+  if(!cur.events.length){toast("No hay acciones para guardar");return;}
+  if(!confirm("¿Finalizar y guardar este partido en la temporada?"))return;
+  var imp=impactOf(cur.events);
+  season.push({
+    date:new Date().toLocaleDateString("es-AR"),
+    rival:cur.rival||"",
+    impact:imp, stars:starsOf(imp),
+    counts:counts(cur.events)
+  });
+  cur=newMatch();save();
+  $("#rival").value="";setMin(0);setHalf(1);
+  buzz([20,40,20]);toast("Partido guardado en temporada ✓");
+  render(); switchView("sea");
+}
+
+/* inject finalize button at end of REGISTRAR */
+(function(){
+  var row=el("div","btnrow");
+  var b1=el("button","btn primary");b1.textContent="✓ Finalizar partido";b1.onclick=finalizeMatch;
+  var b2=el("button","btn danger");b2.textContent="Reiniciar";b2.onclick=function(){
+    if(confirm("¿Borrar las acciones del partido en curso?")){cur=newMatch();$("#rival").value="";setMin(0);setHalf(1);save();render();}
+  };
+  row.appendChild(b1);row.appendChild(b2);
+  var hint=el("div","hint");hint.textContent="“Finalizar” guarda este partido en el historial y limpia la pantalla para el próximo.";
+  $("#v-reg").appendChild(row);$("#v-reg").appendChild(hint);
+})();
+
+/* ---------- NAV ---------- */
+function switchView(v){
+  document.querySelectorAll(".view").forEach(function(s){s.classList.remove("on");});
+  $("#v-"+v).classList.add("on");
+  document.querySelectorAll("nav button").forEach(function(b){b.classList.toggle("on",b.dataset.v===v);});
+  if(v==="kpi")renderKPIs(); if(v==="sea")renderSeason();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("nav button").forEach(function(b){b.onclick=function(){buzz(8);switchView(b.dataset.v);};});
+
+/* ---------- RIVAL ---------- */
+$("#rival").oninput=function(){cur.rival=this.value;save();};
+
+/* ---------- RENDER ---------- */
+function render(){
+  // counts on action buttons
+  var c=counts(cur.events);
+  ACTIONS.forEach(function(a){
+    var b=document.querySelector('[data-c="'+a.key+'"]');
+    if(b){if(c[a.key]>0){b.style.display="flex";b.textContent=c[a.key];}else b.style.display="none";}
+  });
+  renderTimeline();
+  if($("#v-kpi").classList.contains("on"))renderKPIs();
+  if($("#v-sea").classList.contains("on"))renderSeason();
+}
+
+/* ---------- PWA MANIFEST (inline) ---------- */
+(function(){
+  var icon="data:image/svg+xml,"+encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192"><rect width="192" height="192" rx="38" fill="#0a3a72"/><text x="96" y="128" font-size="96" font-family="sans-serif" font-weight="800" fill="#fff" text-anchor="middle">32</text></svg>');
+  var man={name:"Pedro #32 Rugby Tracker",short_name:"Pedro 32",start_url:".",display:"standalone",
+    background_color:"#0f1923",theme_color:"#0f1923",
+    icons:[{src:icon,sizes:"192x192",type:"image/svg+xml"},{src:icon,sizes:"512x512",type:"image/svg+xml"}]};
+  var blob=new Blob([JSON.stringify(man)],{type:"application/manifest+json"});
+  var link=document.createElement("link");link.rel="manifest";link.href=URL.createObjectURL(blob);
+  document.head.appendChild(link);
+  var al=document.createElement("link");al.rel="apple-touch-icon";al.href=icon;document.head.appendChild(al);
+})();
+
+/* ---------- INIT ---------- */
+$("#rival").value=cur.rival||"";
+setMin(cur.minute);setHalf(cur.half);
+buildGrid();render();
+</script>
+</body>
+</html>
