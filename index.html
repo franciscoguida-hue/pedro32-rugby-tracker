@@ -2,817 +2,961 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#C8102E">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Pedro #32">
+<meta name="theme-color" content="#C8102E">
 <title>Pedro #32 · Rugby Tracker</title>
-
-<link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlBlZHJvICMzMiBSdWdieSBUcmFja2VyIiwKICAic2hvcnRfbmFtZSI6ICJQZWRybyAjMzIiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzFhMWExYSIsCiAgInRoZW1lX2NvbG9yIjogIiNDODEwMkUiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MGlhSFIwY0RvdkwzZDNkeTUzTXk1dmNtY3ZNakF3TUM5emRtY2lJSGRwWkhSb1BTSTFNVElpSUdobGFXZG9kRDBpTlRFeUlpQjJhV1YzUW05NFBTSXdJREFnTlRFeUlEVXhNaUkrUEhKbFkzUWdkMmxrZEdnOUlqVXhNaUlnYUdWcFoyaDBQU0kxTVRJaUlISjRQU0l4TURBaUlHWnBiR3c5SWlORE9ERXdNa1VpTHo0OGRHVjRkQ0I0UFNJeU5UWWlJSGs5SWpNd01DSWdabTl1ZEMxemFYcGxQU0l5TURBaUlHWnZiblF0Wm1GdGFXeDVQU0poY21saGJDSWdabWxzYkQwaWQyaHBkR1VpSUhSbGVIUXRZVzVqYUc5eVBTSnRhV1JrYkdVaUlHWnZiblF0ZDJWcFoyaDBQU0ppYjJ4a0lqNHpNand2ZEdWNGRENDhMM04yWno0PSIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
-
+<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Pedro #32 Rugby Tracker&quot;,&quot;short_name&quot;:&quot;Rugby32&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0a0a0a&quot;,&quot;theme_color&quot;:&quot;#C8102E&quot;}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-:root {
-  --rojo: #C8102E;
-  --rojo-osc: #9A0C23;
-  --crema: #FBF7F0;
-  --verde: #1D9E75;
-  --verde-osc: #0F6E56;
-  --naranja: #D85A30;
-  --azul: #378ADD;
-  --ambar: #BA7517;
-  --bg: #14110F;
-  --surface: #1F1B18;
-  --surface-2: #2A2521;
-  --border: rgba(255,255,255,0.08);
-  --border-2: rgba(255,255,255,0.16);
-  --text: #F5F1EA;
-  --text-2: #B0A89C;
-  --text-3: #6E665C;
-  --radius: 14px;
-  --radius-lg: 20px;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-body {
-  font-family: 'Trebuchet MS', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
-  overscroll-behavior: none;
-  padding-bottom: 80px;
-}
-
-.topbar {
-  position: sticky; top: 0; z-index: 100;
-  background: linear-gradient(135deg, var(--rojo) 0%, var(--rojo-osc) 100%);
-  padding: env(safe-area-inset-top, 12px) 16px 14px;
-  padding-top: max(env(safe-area-inset-top), 14px);
-  display: flex; align-items: center; justify-content: space-between;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-}
-.topbar .player {
-  display: flex; align-items: center; gap: 10px;
-}
-.jersey {
-  width: 42px; height: 42px; border-radius: 12px;
-  background: rgba(255,255,255,0.18);
-  border: 1.5px solid rgba(255,255,255,0.4);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; font-weight: bold; color: white;
-  font-family: 'Arial Black', sans-serif;
-}
-.topbar .name { font-size: 16px; font-weight: bold; color: white; line-height: 1.1; }
-.topbar .pos { font-size: 11px; color: rgba(255,255,255,0.8); }
-.season-pill {
-  background: rgba(0,0,0,0.2); color: white; font-size: 11px; font-weight: bold;
-  padding: 5px 11px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.25);
-}
-
-.match-bar {
-  background: var(--surface); padding: 10px 16px;
-  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-  border-bottom: 1px solid var(--border);
-}
-.match-bar input, .match-bar select {
-  background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
-  border-radius: 10px; padding: 8px 10px; font-size: 13px; font-family: inherit;
-}
-.match-bar input[type=text] { flex: 1; min-width: 100px; }
-.match-bar input[type=date] { width: 130px; }
-
-.minute-box {
-  display: flex; align-items: center; gap: 0; margin-left: auto;
-  background: var(--surface-2); border-radius: 10px; border: 1px solid var(--border); overflow: hidden;
-}
-.minute-box button {
-  background: none; border: none; color: var(--text-2); font-size: 18px; width: 34px; height: 36px; cursor: pointer;
-}
-.minute-box button:active { background: var(--rojo); color: white; }
-.minute-box .min-val { font-size: 15px; font-weight: bold; min-width: 38px; text-align: center; }
-.minute-box .min-label { font-size: 9px; color: var(--text-3); display: block; }
-
-.content { padding: 14px 14px 0; }
-
-.section { display: none; }
-.section.active { display: block; }
-
-.section-title {
-  font-size: 11px; font-weight: bold; color: var(--text-3); text-transform: uppercase;
-  letter-spacing: 0.08em; margin: 14px 2px 8px;
-}
-
-.action-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px;
-}
-.action-grid.tres { grid-template-columns: repeat(2, 1fr); }
-
-.abtn {
-  position: relative;
-  border: 1.5px solid var(--border-2); border-radius: var(--radius);
-  background: var(--surface); padding: 14px 10px 12px;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; user-select: none; transition: transform 0.08s, background 0.08s;
-  min-height: 92px; justify-content: center;
-}
-.abtn:active { transform: scale(0.95); }
-.abtn.flash { animation: flash 0.3s; }
-@keyframes flash { 0% { background: var(--rojo); } 100% { background: var(--surface); } }
-.abtn.pos.flash { animation: flashG 0.3s; }
-@keyframes flashG { 0% { background: var(--verde-osc); } 100% { background: var(--surface); } }
-.abtn .ic { font-size: 24px; line-height: 1; }
-.abtn .lbl { font-size: 12px; font-weight: bold; text-align: center; line-height: 1.15; }
-.abtn .cnt {
-  position: absolute; top: 7px; right: 9px;
-  font-size: 17px; font-weight: bold; min-width: 22px; text-align: right;
-}
-.abtn .pt { font-size: 10px; color: var(--text-3); }
-.abtn.pos { border-color: rgba(29,158,117,0.5); }
-.abtn.pos .cnt { color: var(--verde); }
-.abtn.neg { border-color: rgba(216,90,48,0.5); }
-.abtn.neg .cnt { color: var(--naranja); }
-.abtn.met { border-color: rgba(55,138,221,0.5); grid-column: span 2; flex-direction: row; gap: 14px; min-height: 64px; }
-.abtn.met .cnt { position: static; color: var(--azul); font-size: 24px; }
-.abtn.met .met-controls { display: flex; align-items: center; gap: 10px; }
-.abtn.met .met-controls button {
-  width: 42px; height: 42px; border-radius: 12px; border: 1.5px solid var(--border-2);
-  background: var(--surface-2); color: var(--text); font-size: 20px; font-weight: bold; cursor: pointer;
-}
-.abtn.met .met-controls button:active { background: var(--azul); color: white; }
-
-.note-section { margin-top: 16px; }
-.note-input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-.note-input-row input {
-  flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text);
-  border-radius: 10px; padding: 11px 12px; font-size: 14px; font-family: inherit;
-}
-.note-toggle { display: flex; gap: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
-.note-toggle button {
-  background: var(--surface); border: none; color: var(--text-2); padding: 0 14px; font-size: 18px; cursor: pointer;
-}
-.note-toggle button.sel-bien { background: var(--verde-osc); color: white; }
-.note-toggle button.sel-mal { background: var(--naranja); color: white; }
-
-.log-list { margin-top: 12px; }
-.log-item {
-  display: flex; align-items: center; gap: 10px; padding: 11px 12px;
-  background: var(--surface); border-radius: 10px; margin-bottom: 6px; border: 1px solid var(--border);
-}
-.log-item .lt { font-size: 11px; color: var(--text-3); min-width: 44px; }
-.log-item .ln { flex: 1; font-size: 14px; }
-.log-item .lp { font-size: 13px; font-weight: bold; }
-.log-item .ldel { color: var(--text-3); font-size: 18px; padding: 4px; cursor: pointer; }
-.empty { text-align: center; padding: 30px 20px; color: var(--text-3); font-size: 13px; line-height: 1.6; }
-
-.save-row { display: flex; gap: 10px; margin: 18px 0 10px; }
-.btn-save {
-  flex: 1; background: var(--rojo); color: white; border: none; border-radius: var(--radius);
-  padding: 15px; font-size: 15px; font-weight: bold; cursor: pointer; font-family: inherit;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.btn-save:active { background: var(--rojo-osc); }
-.btn-clear {
-  background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 15px 20px; font-size: 14px; cursor: pointer; font-family: inherit;
-}
-
-.score-hero {
-  background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
-  border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px;
-  display: flex; justify-content: space-around; align-items: center; margin-bottom: 14px; text-align: center;
-}
-.score-hero .big { font-size: 40px; font-weight: bold; line-height: 1; }
-.score-hero .lbl { font-size: 11px; color: var(--text-2); margin-top: 5px; }
-.score-hero .stars { font-size: 22px; color: var(--ambar); letter-spacing: 2px; }
-.score-hero .divider { width: 1px; height: 50px; background: var(--border); }
-
-.kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin-bottom: 14px; }
-.kpi-c { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 13px 14px; }
-.kpi-c .kl { font-size: 11px; color: var(--text-2); margin-bottom: 5px; }
-.kpi-c .kv { font-size: 26px; font-weight: bold; line-height: 1; }
-.kpi-c .ks { font-size: 10px; color: var(--text-3); margin-top: 4px; }
-.good { color: var(--verde); }
-.warn { color: var(--ambar); }
-.bad { color: var(--naranja); }
-
-.notes-review { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
-.notes-review .nr-title { font-size: 12px; font-weight: bold; color: var(--text-2); margin-bottom: 10px; }
-.notes-review .nr-item { font-size: 13px; padding: 5px 0; color: var(--text); display: flex; gap: 8px; }
-
-.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
-.chart-card .cc-title { font-size: 12px; font-weight: bold; color: var(--text-2); margin-bottom: 12px; }
-.chart-wrap { position: relative; width: 100%; }
-
-.match-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 14px; margin-bottom: 10px;
-}
-.match-card .mc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.match-card .mc-rival { font-size: 15px; font-weight: bold; }
-.match-card .mc-date { font-size: 11px; color: var(--text-3); }
-.match-card .mc-stars { color: var(--ambar); font-size: 15px; }
-.match-card .mc-impacto { font-size: 22px; font-weight: bold; }
-.match-card .mc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.match-card .mc-stat { text-align: center; }
-.match-card .mc-stat .v { font-size: 16px; font-weight: bold; }
-.match-card .mc-stat .l { font-size: 9px; color: var(--text-3); text-transform: uppercase; }
-.match-card .mc-del { font-size: 12px; color: var(--text-3); margin-top: 10px; text-align: right; cursor: pointer; }
-
-.export-box {
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 12px; font-family: monospace; font-size: 10px; color: var(--text-2);
-  white-space: pre; overflow-x: auto; margin-bottom: 12px; max-height: 200px; overflow-y: auto;
-}
-.btn-export {
-  width: 100%; background: var(--rojo); color: white; border: none; border-radius: var(--radius);
-  padding: 14px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit; margin-bottom: 10px;
-}
-.btn-export.sec { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
-.export-help { font-size: 12px; color: var(--text-3); line-height: 1.6; margin-top: 8px; }
-
-.tabbar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: var(--surface); border-top: 1px solid var(--border-2);
-  display: flex; padding-bottom: env(safe-area-inset-bottom, 0);
-}
-.tabbar button {
-  flex: 1; background: none; border: none; color: var(--text-3); padding: 10px 4px 12px;
-  display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font-family: inherit;
-}
-.tabbar button .ti { font-size: 22px; }
-.tabbar button .tlbl { font-size: 10px; font-weight: bold; }
-.tabbar button.active { color: var(--rojo); }
-
-.toast {
-  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
-  background: var(--verde); color: white; padding: 12px 22px; border-radius: 30px;
-  font-size: 14px; font-weight: bold; opacity: 0; transition: all 0.3s; z-index: 200; pointer-events: none;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-.install-banner {
-  background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius);
-  padding: 12px 14px; margin: 14px; display: none; align-items: center; gap: 12px; font-size: 13px;
-}
-.install-banner.show { display: flex; }
-.install-banner button {
-  margin-left: auto; background: var(--rojo); color: white; border: none; border-radius: 8px;
-  padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: inherit; white-space: nowrap;
-}
-
-@font-face {
-  font-family: 'tabler-icons';
-  src: url('https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.34.1/fonts/tabler-icons.woff2') format('woff2');
-}
-.ti { font-family: 'tabler-icons'; font-style: normal; }
-.ti-plus::before { content: '\ea66'; }
-.ti-chart::before { content: '\ec48'; }
-.ti-history::before { content: '\eb6f'; }
-.ti-download::before { content: '\ea96'; }
+  :root {
+    --red: #C8102E;
+    --red-dark: #9e0d24;
+    --red-glow: rgba(200,16,46,0.25);
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --surface2: #1e1e1e;
+    --surface3: #2a2a2a;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f0f0;
+    --text-muted: #888;
+    --text-dim: #555;
+    --green: #22c55e;
+    --yellow: #f59e0b;
+    --blue: #3b82f6;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; }
+  #auth-screen {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: var(--bg); z-index: 100; padding: 24px;
+  }
+  .auth-card {
+    width: 100%; max-width: 380px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 20px; padding: 36px 28px;
+  }
+  .auth-logo { text-align: center; margin-bottom: 28px; }
+  .auth-logo .badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--red); color: #fff; border-radius: 50px;
+    padding: 10px 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .auth-logo .num { font-size: 28px; font-weight: 900; line-height: 1; }
+  .auth-title { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 6px; }
+  .auth-sub { font-size: 13px; color: var(--text-muted); text-align: center; margin-bottom: 28px; }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .auth-field input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text);
+    font-size: 15px; outline: none; transition: border-color 0.2s;
+  }
+  .auth-field input:focus { border-color: var(--red); }
+  .btn-auth {
+    width: 100%; background: var(--red); color: #fff; border: none;
+    border-radius: var(--radius-sm); padding: 14px; font-size: 15px; font-weight: 700;
+    cursor: pointer; margin-top: 8px; transition: background 0.2s;
+  }
+  .btn-auth:hover { background: var(--red-dark); }
+  .auth-toggle { text-align: center; margin-top: 18px; font-size: 13px; color: var(--text-muted); }
+  .auth-toggle span { color: var(--red); cursor: pointer; font-weight: 600; }
+  .auth-forgot { text-align: center; margin-top: 10px; font-size: 12px; }
+  .auth-forgot span { color: var(--text-dim); cursor: pointer; }
+  .auth-forgot span:hover { color: var(--text-muted); }
+  .auth-error { background: rgba(200,16,46,0.1); border: 1px solid rgba(200,16,46,0.3); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: #ff6b6b; margin-bottom: 14px; display: none; }
+  .auth-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--green); margin-bottom: 14px; display: none; }
+  #app { display: none; flex-direction: column; height: 100%; }
+  #app.visible { display: flex; }
+  .app-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px 10px; background: var(--surface);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .header-badge {
+    background: var(--red); color: #fff; border-radius: 50px;
+    padding: 5px 12px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px;
+  }
+  .header-title { font-size: 15px; font-weight: 700; }
+  .header-sub { font-size: 11px; color: var(--text-muted); }
+  .btn-logout {
+    background: var(--surface3); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text-muted); padding: 6px 12px; font-size: 12px; cursor: pointer;
+  }
+  .app-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .tab-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0;
+  }
+  .tab-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; padding: 10px 4px 12px; background: none; border: none;
+    color: var(--text-dim); cursor: pointer; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.3px; transition: color 0.2s;
+    border-top: 2px solid transparent;
+  }
+  .tab-btn.active { color: var(--red); border-top-color: var(--red); }
+  .tab-btn svg { width: 20px; height: 20px; }
+  .panel { display: none; padding: 16px; }
+  .panel.active { display: block; }
+  .section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-dim); margin-bottom: 12px; margin-top: 20px;
+  }
+  .section-title:first-child { margin-top: 0; }
+  .match-form { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .form-group input, .form-group select {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 10px 12px; color: var(--text);
+    font-size: 14px; outline: none; width: 100%;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--red); }
+  .form-group select option { background: var(--surface2); }
+  .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+  .action-btn {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: pointer; transition: all 0.15s; color: var(--text);
+    -webkit-user-select: none; user-select: none;
+  }
+  .action-btn:active { transform: scale(0.95); }
+  .action-btn.positive { border-color: rgba(34,197,94,0.3); }
+  .action-btn.positive:active { background: rgba(34,197,94,0.1); }
+  .action-btn.negative { border-color: rgba(239,68,68,0.3); }
+  .action-btn.negative:active { background: rgba(239,68,68,0.1); }
+  .action-btn.neutral { border-color: rgba(59,130,246,0.3); }
+  .action-btn.neutral:active { background: rgba(59,130,246,0.1); }
+  .action-icon { font-size: 24px; line-height: 1; }
+  .action-label { font-size: 12px; font-weight: 700; text-align: center; }
+  .action-count { font-size: 20px; font-weight: 900; color: var(--red); }
+  .log-area { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+  .log-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .log-header span { font-size: 13px; font-weight: 700; }
+  .btn-clear-log { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); padding: 4px 10px; font-size: 11px; cursor: pointer; }
+  .log-list { max-height: 220px; overflow-y: auto; }
+  .log-item {
+    padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-item-left { display: flex; gap: 8px; align-items: center; }
+  .log-item-time { font-size: 11px; color: var(--text-dim); }
+  .log-item-undo { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px; padding: 2px 6px; }
+  .btn-save-match {
+    width: 100%; background: var(--red); color: #fff; border: none;
+    border-radius: var(--radius); padding: 16px; font-size: 16px; font-weight: 800;
+    cursor: pointer; margin-top: 16px; letter-spacing: 0.3px; transition: background 0.2s;
+  }
+  .btn-save-match:hover { background: var(--red-dark); }
+  .btn-save-match:disabled { background: var(--surface3); color: var(--text-dim); cursor: not-allowed; }
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+  .kpi-value { font-size: 28px; font-weight: 900; line-height: 1; }
+  .kpi-sub { font-size: 11px; color: var(--text-dim); }
+  .kpi-bar { height: 4px; border-radius: 2px; background: var(--surface3); margin-top: 6px; overflow: hidden; }
+  .kpi-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+  .green { color: var(--green); } .yellow { color: var(--yellow); } .red-c { color: var(--red); }
+  .last-match-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 16px;
+  }
+  .last-match-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .last-match-title { font-size: 14px; font-weight: 700; }
+  .last-match-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .last-match-result { font-size: 22px; font-weight: 900; }
+  .last-match-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .stat-mini { text-align: center; }
+  .stat-mini-val { font-size: 18px; font-weight: 800; }
+  .stat-mini-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+  .traffic-lights { display: flex; flex-direction: column; gap: 8px; }
+  .tl-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; }
+  .tl-label { font-size: 13px; font-weight: 600; }
+  .tl-right { display: flex; align-items: center; gap: 10px; }
+  .tl-value { font-size: 16px; font-weight: 800; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+  .chart-title { font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+  .chart-container { position: relative; height: 180px; }
+  .match-history { display: flex; flex-direction: column; gap: 8px; }
+  .match-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .match-card-left { display: flex; flex-direction: column; gap: 3px; }
+  .match-card-rival { font-size: 14px; font-weight: 700; }
+  .match-card-meta { font-size: 11px; color: var(--text-muted); }
+  .match-card-score { font-size: 18px; font-weight: 900; }
+  .match-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .match-card-actions { font-size: 11px; color: var(--text-muted); }
+  .btn-delete-match { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px; padding: 2px 0; }
+  .export-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+  .export-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
+  .btn-export {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px; font-size: 14px; font-weight: 700;
+    color: var(--text); cursor: pointer; margin-bottom: 10px; transition: border-color 0.2s;
+  }
+  .btn-export:hover { border-color: var(--red); }
+  .season-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .summary-card { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
+  .summary-val { font-size: 24px; font-weight: 900; color: var(--red); }
+  .summary-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--surface3); border: 1px solid var(--border); border-radius: 50px;
+    padding: 10px 20px; font-size: 13px; font-weight: 600; white-space: nowrap;
+    opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .loading-overlay {
+    position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center;
+    justify-content: center; z-index: 200; flex-direction: column; gap: 16px;
+  }
+  .loading-spinner {
+    width: 40px; height: 40px; border: 3px solid var(--surface3);
+    border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-dim); }
+  .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state-text { font-size: 14px; }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="player">
-    <div class="jersey">32</div>
-    <div>
-      <div class="name">Pedro</div>
-      <div class="pos" id="pos-display">Ala (6/7)</div>
-    </div>
-  </div>
-  <div class="season-pill">Temporada 2026</div>
+<div class="loading-overlay" id="loading">
+  <div class="loading-spinner"></div>
+  <div style="font-size:13px;color:var(--text-muted)">Cargando...</div>
 </div>
 
-<div class="install-banner" id="install-banner">
-  <span>📲 Instalá la app en tu pantalla de inicio</span>
-  <button onclick="installApp()">Instalar</button>
-</div>
-
-<!-- MATCH BAR (solo en registrar) -->
-<div class="match-bar" id="match-bar">
-  <input type="text" id="m-rival" placeholder="Rival...">
-  <input type="date" id="m-date">
-  <select id="m-pos" onchange="updatePos()">
-    <option value="ala">Ala (6/7)</option>
-    <option value="segunda">2ª línea (4/5)</option>
-  </select>
-  <div class="minute-box">
-    <button onclick="adjMin(-1)">−</button>
-    <div><span class="min-val" id="min-val">0</span><span class="min-label">min</span></div>
-    <button onclick="adjMin(1)">+</button>
-  </div>
-</div>
-
-<div class="content">
-
-<!-- TAB REGISTRAR -->
-<div class="section active" id="s-reg">
-  <div class="section-title">Acciones positivas</div>
-  <div class="action-grid" id="pos-grid"></div>
-  <div class="section-title">Acciones negativas · Metros</div>
-  <div class="action-grid" id="neg-grid"></div>
-
-  <div class="note-section">
-    <div class="section-title">Notas de observación</div>
-    <div class="note-input-row">
-      <input type="text" id="note-txt" placeholder="Ej: llegó primero al ruck...">
-      <div class="note-toggle">
-        <button id="nt-bien" class="sel-bien" onclick="setNoteType('bien')">✓</button>
-        <button id="nt-mal" onclick="setNoteType('mal')">✕</button>
+<div id="auth-screen" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="badge">
+        <span class="num">#32</span>
+        <span>RUGBY TRACKER</span>
       </div>
     </div>
-    <button class="btn-clear" style="width:100%; padding:11px;" onclick="addNote()">Agregar nota</button>
-  </div>
-
-  <div class="section-title" style="margin-top:18px;">Registro (<span id="log-count">0</span>)</div>
-  <div class="log-list" id="log-list">
-    <div class="empty">Todavía no registraste nada.<br>Apretá los botones mientras mirás el video.</div>
-  </div>
-
-  <div class="save-row">
-    <button class="btn-save" onclick="saveMatch()">💾 Guardar partido</button>
-    <button class="btn-clear" onclick="clearCurrent()">Limpiar</button>
-  </div>
-</div>
-
-<!-- TAB KPIS -->
-<div class="section" id="s-kpi">
-  <div id="kpi-content"></div>
-</div>
-
-<!-- TAB HISTORIA -->
-<div class="section" id="s-hist">
-  <div id="hist-content"></div>
-</div>
-
-<!-- TAB EXPORTAR -->
-<div class="section" id="s-exp">
-  <div class="section-title">Datos de temporada (CSV para Google Sheets)</div>
-  <div class="export-box" id="csv-box">Sin partidos guardados todavía.</div>
-  <button class="btn-export" onclick="copyCSV()">📋 Copiar CSV</button>
-  <button class="btn-export sec" onclick="downloadCSV()">⬇️ Descargar archivo .csv</button>
-  <div class="export-help">
-    <b>Cómo subirlo a Google Sheets:</b><br>
-    1. Copiá el CSV o descargá el archivo.<br>
-    2. En Google Sheets: Archivo → Importar → Subir.<br>
-    3. Listo, cada fila es un partido con todos los KPIs.<br><br>
-    Columnas: Fecha · Rival · Posición · Tackles · Fallados · % Efectividad · Turnovers · Rucks · Carries · Metros · Penales · Participaciones · Puntaje de impacto
+    <div class="auth-title" id="auth-title">Iniciar sesión</div>
+    <div class="auth-sub" id="auth-sub">Accedé a las estadísticas de Pedro</div>
+    <div class="auth-error" id="auth-error"></div>
+    <div class="auth-success" id="auth-success"></div>
+    <div class="auth-field" id="field-name" style="display:none">
+      <label>Nombre</label>
+      <input type="text" id="input-name" placeholder="Tu nombre">
+    </div>
+    <div class="auth-field">
+      <label>Email</label>
+      <input type="email" id="input-email" placeholder="tu@email.com">
+    </div>
+    <div class="auth-field" id="field-password">
+      <label>Contraseña</label>
+      <input type="password" id="input-password" placeholder="••••••••">
+    </div>
+    <button class="btn-auth" id="btn-auth-action">Entrar</button>
+    <div class="auth-forgot" id="auth-forgot-container">
+      <span id="btn-forgot">¿Olvidaste tu contraseña?</span>
+    </div>
+    <div class="auth-toggle" id="auth-toggle-container">
+      ¿No tenés cuenta? <span id="auth-toggle">Registrarse</span>
+    </div>
   </div>
 </div>
 
-</div>
+<div id="app">
+  <div class="app-header">
+    <div class="header-brand">
+      <div class="header-badge">#32</div>
+      <div>
+        <div class="header-title">Pedro · Rugby Tracker</div>
+        <div class="header-sub" id="header-user">—</div>
+      </div>
+    </div>
+    <button class="btn-logout" id="btn-logout">Salir</button>
+  </div>
 
-<!-- TABBAR -->
-<div class="tabbar">
-  <button class="active" id="tb-reg" onclick="showTab('reg')"><span class="ti ti-plus"></span><span class="tlbl">Registrar</span></button>
-  <button id="tb-kpi" onclick="showTab('kpi')"><span class="ti ti-chart"></span><span class="tlbl">KPIs</span></button>
-  <button id="tb-hist" onclick="showTab('hist')"><span class="ti ti-history"></span><span class="tlbl">Temporada</span></button>
-  <button id="tb-exp" onclick="showTab('exp')"><span class="ti ti-download"></span><span class="tlbl">Exportar</span></button>
+  <div class="app-content">
+    <div class="panel active" id="panel-registrar">
+      <div class="match-form">
+        <div class="section-title">Datos del partido</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Rival</label>
+            <input type="text" id="input-rival" placeholder="Ej: CASI">
+          </div>
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="input-fecha">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Posición</label>
+            <select id="input-posicion">
+              <option value="Ala 6">Ala 6</option>
+              <option value="Ala 7">Ala 7</option>
+              <option value="2ª línea 4">2ª línea 4</option>
+              <option value="2ª línea 5">2ª línea 5</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Resultado</label>
+            <input type="text" id="input-resultado" placeholder="Ej: 21-14 G">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Minutos</label>
+            <input type="number" id="input-minutos" placeholder="80" min="1" max="120">
+          </div>
+          <div class="form-group">
+            <label>Nota (1-10)</label>
+            <input type="number" id="input-nota" placeholder="7" min="1" max="10">
+          </div>
+        </div>
+      </div>
+      <div class="section-title">Acciones durante el partido</div>
+      <div class="action-grid" id="action-grid"></div>
+      <div class="log-area">
+        <div class="log-header">
+          <span>Log de acciones</span>
+          <button class="btn-clear-log" id="btn-clear-log">Limpiar</button>
+        </div>
+        <div class="log-list" id="log-list">
+          <div class="empty-state" style="padding:20px">
+            <div class="empty-state-text">Tocá los botones para registrar acciones</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-save-match" id="btn-save-match">💾 Guardar partido</button>
+    </div>
+
+    <div class="panel" id="panel-kpis">
+      <div id="kpis-content">
+        <div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Cargando KPIs...</div></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-temporada">
+      <div id="temporada-content">
+        <div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">Cargando temporada...</div></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-exportar">
+      <div class="export-section">
+        <div class="section-title">Resumen de temporada</div>
+        <div class="season-summary">
+          <div class="summary-card"><div class="summary-val" id="exp-partidos">—</div><div class="summary-lbl">Partidos</div></div>
+          <div class="summary-card"><div class="summary-val" id="exp-tries">—</div><div class="summary-lbl">Tries</div></div>
+          <div class="summary-card"><div class="summary-val" id="exp-tackles">—</div><div class="summary-lbl">Tackles</div></div>
+          <div class="summary-card"><div class="summary-val" id="exp-efectividad">—</div><div class="summary-lbl">Efectividad</div></div>
+        </div>
+      </div>
+      <div class="export-section">
+        <div class="section-title">Exportar datos</div>
+        <div class="export-desc">Descargá los datos de la temporada en CSV para analizar en Google Sheets o Excel.</div>
+        <button class="btn-export" id="btn-export-csv">📥 Exportar CSV completo</button>
+        <button class="btn-export" id="btn-export-resumen">📋 Exportar resumen por partido</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-panel="registrar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Registrar
+    </button>
+    <button class="tab-btn" data-panel="kpis">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      KPIs
+    </button>
+    <button class="tab-btn" data-panel="temporada">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Temporada
+    </button>
+    <button class="tab-btn" data-panel="exportar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Exportar
+    </button>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>
-const STORAGE_KEY = 'pedro32_rugby_v1';
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const ACTIONS_POS = [
-  { id:'tackle', label:'Tackle', icon:'🛡️', pts:1 },
-  { id:'tackle_dom', label:'Tackle dominante', icon:'💥', pts:2 },
-  { id:'turnover', label:'Turnover ganado', icon:'🔄', pts:3 },
-  { id:'ruck', label:'Ruck disputado', icon:'🤼', pts:1 },
-  { id:'limpieza', label:'Limpieza efectiva', icon:'🧹', pts:1 },
-  { id:'carry', label:'Carry', icon:'🏃', pts:1 },
-  { id:'lineout_prop', label:'Lineout ganado', icon:'⬆️', pts:1 },
-  { id:'lineout_rob', label:'Lineout robado', icon:'🎯', pts:2 },
-];
-const ACTIONS_NEG = [
-  { id:'tackle_fall', label:'Tackle fallado', icon:'❌', pts:-2 },
-  { id:'penal', label:'Penal cometido', icon:'🚩', pts:-3 },
-];
-
-let state = {
-  counts: {},
-  log: [],
-  notes: [],
-  minute: 0,
-  noteType: 'bien',
-  matches: []
+const firebaseConfig = {
+  apiKey: "AIzaSyCobz764xcgmZjTHO5M_7-bnrbvzbKp54Q",
+  authDomain: "pedro32-rugby.firebaseapp.com",
+  projectId: "pedro32-rugby",
+  storageBucket: "pedro32-rugby.firebasestorage.app",
+  messagingSenderId: "958071981045",
+  appId: "1:958071981045:web:dc3db2ab32d382ef1956bc"
 };
 
-function freshCounts() {
-  let c = {};
-  ACTIONS_POS.forEach(a => c[a.id] = 0);
-  ACTIONS_NEG.forEach(a => c[a.id] = 0);
-  c.metros = 0;
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+
+let currentUser = null;
+let allMatches = [];
+let currentLog = [];
+let charts = {};
+
+const ACTIONS = [
+  { key: 'tackles_buenos',    label: 'Tackle bueno',      icon: '💪', type: 'positive' },
+  { key: 'tackles_fallados',  label: 'Tackle fallado',    icon: '❌', type: 'negative' },
+  { key: 'tackles_dominantes',label: 'Tackle dominante',  icon: '🔥', type: 'positive' },
+  { key: 'turnovers_gen',     label: 'Turnover gen.',     icon: '🏆', type: 'positive' },
+  { key: 'turnovers_ced',     label: 'Turnover ced.',     icon: '⚠️', type: 'negative' },
+  { key: 'carries',           label: 'Carry',             icon: '🏃', type: 'neutral' },
+  { key: 'metros_ganados',    label: 'Metros ganados',    icon: '📏', type: 'neutral' },
+  { key: 'rucks_ganados',     label: 'Ruck ganado',       icon: '✅', type: 'positive' },
+  { key: 'rucks_perdidos',    label: 'Ruck perdido',      icon: '🚫', type: 'negative' },
+  { key: 'lineouts_ganados',  label: 'Lineout gan.',      icon: '🎯', type: 'positive' },
+  { key: 'lineouts_perdidos', label: 'Lineout perd.',     icon: '😬', type: 'negative' },
+  { key: 'tries',             label: 'Try',               icon: '🏉', type: 'positive' },
+  { key: 'pases',             label: 'Pase',              icon: '↗️', type: 'neutral' },
+  { key: 'penales_cometidos', label: 'Penal cometido',    icon: '🟡', type: 'negative' },
+  { key: 'trabajo_sin_balon', label: 'Trab. sin balón',   icon: '🏃‍♂️', type: 'neutral' },
+  { key: 'impacto_scrum',     label: 'Impacto scrum',     icon: '⚡', type: 'neutral' },
+];
+
+function newActionCounts() {
+  const c = {};
+  ACTIONS.forEach(a => c[a.key] = 0);
   return c;
 }
-state.counts = freshCounts();
+let actionCounts = newActionCounts();
 
-function save() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+let authMode = 'login';
+
+function setAuthMode(mode) {
+  authMode = mode;
+  const title = document.getElementById('auth-title');
+  const sub = document.getElementById('auth-sub');
+  const btnAction = document.getElementById('btn-auth-action');
+  const toggleContainer = document.getElementById('auth-toggle-container');
+  const toggleSpan = document.getElementById('auth-toggle');
+  const fieldName = document.getElementById('field-name');
+  const fieldPassword = document.getElementById('field-password');
+  const forgotContainer = document.getElementById('auth-forgot-container');
+  clearAuthMessages();
+  if (mode === 'login') {
+    title.textContent = 'Iniciar sesión';
+    sub.textContent = 'Accedé a las estadísticas de Pedro';
+    btnAction.textContent = 'Entrar';
+    fieldName.style.display = 'none';
+    fieldPassword.style.display = 'block';
+    toggleContainer.style.display = 'block';
+    toggleSpan.textContent = 'Registrarse';
+    forgotContainer.style.display = 'block';
+  } else if (mode === 'register') {
+    title.textContent = 'Crear cuenta';
+    sub.textContent = 'Registrate para acceder al tracker';
+    btnAction.textContent = 'Crear cuenta';
+    fieldName.style.display = 'block';
+    fieldPassword.style.display = 'block';
+    toggleContainer.style.display = 'block';
+    toggleSpan.textContent = 'Ya tengo cuenta';
+    forgotContainer.style.display = 'none';
+  } else if (mode === 'forgot') {
+    title.textContent = 'Recuperar contraseña';
+    sub.textContent = 'Te mandamos un link al email';
+    btnAction.textContent = 'Enviar link';
+    fieldName.style.display = 'none';
+    fieldPassword.style.display = 'none';
+    toggleContainer.style.display = 'block';
+    toggleSpan.textContent = 'Volver al login';
+    forgotContainer.style.display = 'none';
+  }
 }
-function load() {
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('auth-success').style.display = 'none';
+}
+function showAuthSuccess(msg) {
+  const el = document.getElementById('auth-success');
+  el.textContent = msg;
+  el.style.display = 'block';
+  document.getElementById('auth-error').style.display = 'none';
+}
+function clearAuthMessages() {
+  document.getElementById('auth-error').style.display = 'none';
+  document.getElementById('auth-success').style.display = 'none';
+}
+
+document.getElementById('auth-toggle').addEventListener('click', () => {
+  if (authMode === 'login') setAuthMode('register');
+  else setAuthMode('login');
+});
+
+document.getElementById('btn-forgot').addEventListener('click', () => setAuthMode('forgot'));
+
+document.getElementById('btn-auth-action').addEventListener('click', async () => {
+  clearAuthMessages();
+  const email = document.getElementById('input-email').value.trim();
+  const password = document.getElementById('input-password').value;
+  const name = document.getElementById('input-name').value.trim();
+  if (authMode === 'forgot') {
+    if (!email) return showAuthError('Ingresá tu email.');
+    try {
+      await sendPasswordResetEmail(auth, email);
+      showAuthSuccess('✅ Link enviado. Revisá tu correo (también spam).');
+    } catch(e) { showAuthError(firebaseErrorMsg(e.code)); }
+    return;
+  }
+  if (!email || !password) return showAuthError('Completá email y contraseña.');
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      state = Object.assign(state, parsed);
-      if (!state.counts) state.counts = freshCounts();
+    if (authMode === 'register') {
+      if (!name) return showAuthError('Ingresá tu nombre.');
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, { displayName: name });
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
     }
-  } catch(e) {}
+  } catch(e) { showAuthError(firebaseErrorMsg(e.code)); }
+});
+
+function firebaseErrorMsg(code) {
+  const msgs = {
+    'auth/invalid-email': 'Email inválido.',
+    'auth/user-not-found': 'No existe cuenta con ese email.',
+    'auth/wrong-password': 'Contraseña incorrecta.',
+    'auth/email-already-in-use': 'Ya existe una cuenta con ese email.',
+    'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+    'auth/invalid-credential': 'Email o contraseña incorrectos.',
+    'auth/too-many-requests': 'Demasiados intentos. Esperá un momento.',
+  };
+  return msgs[code] || 'Error. Intentá de nuevo.';
 }
 
-function allActions() { return [...ACTIONS_POS, ...ACTIONS_NEG]; }
+onAuthStateChanged(auth, async (user) => {
+  document.getElementById('loading').style.display = 'none';
+  if (user) {
+    currentUser = user;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    document.getElementById('header-user').textContent = user.displayName || user.email;
+    await loadMatches();
+    buildActionGrid();
+    setTodayDate();
+    renderKPIs();
+    renderTemporada();
+    renderExport();
+  } else {
+    currentUser = null;
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app').classList.remove('visible');
+    setAuthMode('login');
+  }
+});
 
-function adjMin(d) {
-  state.minute = Math.max(0, Math.min(120, state.minute + d));
-  document.getElementById('min-val').textContent = state.minute;
-  save();
+document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+async function loadMatches() {
+  try {
+    const q = query(collection(db, 'rugby_matches'), orderBy('timestamp', 'desc'));
+    const snap = await getDocs(q);
+    allMatches = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { allMatches = []; }
 }
 
-function initButtons() {
-  const pg = document.getElementById('pos-grid');
-  pg.innerHTML = ACTIONS_POS.map(a => `
-    <div class="abtn pos" id="btn-${a.id}" onclick="logAction('${a.id}')">
-      <span class="cnt" id="cnt-${a.id}">${state.counts[a.id]||0}</span>
-      <span class="ic">${a.icon}</span>
-      <span class="lbl">${a.label}</span>
-      <span class="pt">+${a.pts}</span>
-    </div>`).join('');
-  const ng = document.getElementById('neg-grid');
-  ng.innerHTML = ACTIONS_NEG.map(a => `
-    <div class="abtn neg" id="btn-${a.id}" onclick="logAction('${a.id}')">
-      <span class="cnt" id="cnt-${a.id}">${state.counts[a.id]||0}</span>
-      <span class="ic">${a.icon}</span>
-      <span class="lbl">${a.label}</span>
-      <span class="pt">${a.pts}</span>
-    </div>`).join('');
-  ng.innerHTML += `
-    <div class="abtn met">
-      <span class="ic">📍</span>
-      <span class="lbl">Metros</span>
-      <div class="met-controls">
-        <button onclick="addMetros(-5)">−</button>
-        <span class="cnt" id="cnt-metros">${state.counts.metros||0}</span>
-        <button onclick="addMetros(5)">+</button>
-      </div>
-    </div>`;
+async function saveMatch(matchData) {
+  const ref = await addDoc(collection(db, 'rugby_matches'), {
+    ...matchData,
+    userId: currentUser.uid,
+    userEmail: currentUser.email,
+    userName: currentUser.displayName || currentUser.email,
+    timestamp: serverTimestamp(),
+  });
+  return ref.id;
 }
 
-function logAction(id) {
-  state.counts[id] = (state.counts[id]||0) + 1;
-  document.getElementById('cnt-' + id).textContent = state.counts[id];
-  const btn = document.getElementById('btn-' + id);
-  btn.classList.remove('flash'); void btn.offsetWidth; btn.classList.add('flash');
-  const act = allActions().find(a => a.id === id);
-  state.log.push({ id, label: act.label, min: state.minute, pts: act.pts });
-  if (navigator.vibrate) navigator.vibrate(15);
+async function deleteMatch(id) {
+  await deleteDoc(doc(db, 'rugby_matches', id));
+}
+
+function buildActionGrid() {
+  const grid = document.getElementById('action-grid');
+  grid.innerHTML = '';
+  ACTIONS.forEach(action => {
+    const btn = document.createElement('button');
+    btn.className = `action-btn ${action.type}`;
+    btn.innerHTML = `
+      <span class="action-icon">${action.icon}</span>
+      <span class="action-label">${action.label}</span>
+      <span class="action-count" id="count-${action.key}">0</span>
+    `;
+    btn.addEventListener('click', () => logAction(action));
+    grid.appendChild(btn);
+  });
+}
+
+function logAction(action) {
+  actionCounts[action.key]++;
+  document.getElementById(`count-${action.key}`).textContent = actionCounts[action.key];
+  const entry = { key: action.key, label: action.label, icon: action.icon, time: new Date() };
+  currentLog.unshift(entry);
   renderLog();
-  save();
-}
-
-function addMetros(d) {
-  state.counts.metros = Math.max(0, (state.counts.metros||0) + d);
-  document.getElementById('cnt-metros').textContent = state.counts.metros;
-  if (navigator.vibrate) navigator.vibrate(10);
-  save();
-}
-
-function setNoteType(t) {
-  state.noteType = t;
-  document.getElementById('nt-bien').className = t === 'bien' ? 'sel-bien' : '';
-  document.getElementById('nt-mal').className = t === 'mal' ? 'sel-mal' : '';
-}
-
-function addNote() {
-  const txt = document.getElementById('note-txt').value.trim();
-  if (!txt) return;
-  state.notes.push({ txt, type: state.noteType });
-  document.getElementById('note-txt').value = '';
-  renderLog();
-  save();
-  toast('Nota agregada');
+  if (navigator.vibrate) navigator.vibrate(30);
 }
 
 function renderLog() {
-  const el = document.getElementById('log-list');
-  document.getElementById('log-count').textContent = state.log.length;
-  if (state.log.length === 0 && state.notes.length === 0) {
-    el.innerHTML = '<div class="empty">Todavía no registraste nada.<br>Apretá los botones mientras mirás el video.</div>';
+  const list = document.getElementById('log-list');
+  if (currentLog.length === 0) {
+    list.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-state-text">Tocá los botones para registrar acciones</div></div>';
     return;
   }
-  let html = '';
-  state.log.slice().reverse().forEach((item, ri) => {
-    const i = state.log.length - 1 - ri;
-    const pcol = item.pts > 0 ? 'var(--verde)' : 'var(--naranja)';
-    const pstr = item.pts > 0 ? '+' + item.pts : item.pts;
-    html += `<div class="log-item">
-      <span class="lt">min ${item.min}</span>
-      <span class="ln">${item.label}</span>
-      <span class="lp" style="color:${pcol}">${pstr}</span>
-      <span class="ldel" onclick="delLog(${i})">×</span>
-    </div>`;
+  list.innerHTML = currentLog.slice(0, 30).map((e, i) => `
+    <div class="log-item">
+      <div class="log-item-left">
+        <span>${e.icon}</span>
+        <span>${e.label}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="log-item-time">${e.time.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</span>
+        <button class="log-item-undo" data-index="${i}" title="Deshacer">↩</button>
+      </div>
+    </div>
+  `).join('');
+  list.querySelectorAll('.log-item-undo').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(e.currentTarget.dataset.index);
+      const entry = currentLog[idx];
+      if (actionCounts[entry.key] > 0) actionCounts[entry.key]--;
+      const countEl = document.getElementById(`count-${entry.key}`);
+      if (countEl) countEl.textContent = actionCounts[entry.key];
+      currentLog.splice(idx, 1);
+      renderLog();
+    });
   });
-  state.notes.forEach((n, i) => {
-    html += `<div class="log-item" style="background:var(--surface-2);">
-      <span class="lt">${n.type === 'bien' ? '✅' : '⚠️'}</span>
-      <span class="ln" style="font-size:13px; color:var(--text-2);">${n.txt}</span>
-      <span class="ldel" onclick="delNote(${i})">×</span>
-    </div>`;
-  });
-  el.innerHTML = html;
 }
 
-function delLog(i) {
-  const item = state.log[i];
-  state.counts[item.id] = Math.max(0, state.counts[item.id] - 1);
-  const c = document.getElementById('cnt-' + item.id);
-  if (c) c.textContent = state.counts[item.id];
-  state.log.splice(i, 1);
+document.getElementById('btn-clear-log').addEventListener('click', () => {
+  currentLog = [];
+  actionCounts = newActionCounts();
+  ACTIONS.forEach(a => {
+    const el = document.getElementById(`count-${a.key}`);
+    if (el) el.textContent = '0';
+  });
   renderLog();
-  save();
-}
-function delNote(i) { state.notes.splice(i, 1); renderLog(); save(); }
+});
 
-function updatePos() {
-  const v = document.getElementById('m-pos').value;
-  document.getElementById('pos-display').textContent = v === 'ala' ? 'Ala (6/7)' : '2ª línea (4/5)';
+function setTodayDate() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('input-fecha').value = today;
 }
 
-function calcKPIs(c) {
-  const tackles = (c.tackle||0) + (c.tackle_dom||0);
-  const fallados = c.tackle_fall||0;
-  const total = tackles + fallados;
-  const efectividad = total > 0 ? Math.round((tackles/total)*100) : 0;
-  const rucks = (c.ruck||0) + (c.limpieza||0);
-  const participaciones = tackles + fallados + rucks + (c.carry||0) + (c.turnover||0);
-  const impacto = Math.round(
-    (c.tackle||0)*1 + (c.tackle_dom||0)*2 + (c.turnover||0)*3 +
-    (c.carry||0)*1 + (c.metros||0)*0.2 + (c.tackle_fall||0)*-2 + (c.penal||0)*-3
-  );
-  const mpc = (c.carry||0) > 0 ? ((c.metros||0)/(c.carry||0)).toFixed(1) : '0';
-  return { tackles, fallados, efectividad, rucks, participaciones, impacto, mpc,
-    carries: c.carry||0, metros: c.metros||0, turnovers: c.turnover||0, penales: c.penal||0,
-    lineout_prop: c.lineout_prop||0, lineout_rob: c.lineout_rob||0 };
+document.getElementById('btn-save-match').addEventListener('click', async () => {
+  const rival = document.getElementById('input-rival').value.trim();
+  const fecha = document.getElementById('input-fecha').value;
+  const posicion = document.getElementById('input-posicion').value;
+  const resultado = document.getElementById('input-resultado').value.trim();
+  const minutos = parseInt(document.getElementById('input-minutos').value) || 80;
+  const nota = parseFloat(document.getElementById('input-nota').value) || null;
+  if (!rival || !fecha) return showToast('⚠️ Completá rival y fecha');
+  const btn = document.getElementById('btn-save-match');
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+  try {
+    const matchData = { rival, fecha, posicion, resultado, minutos, nota, acciones: { ...actionCounts } };
+    const id = await saveMatch(matchData);
+    allMatches.unshift({ id, ...matchData, timestamp: { toDate: () => new Date() } });
+    document.getElementById('input-rival').value = '';
+    document.getElementById('input-resultado').value = '';
+    document.getElementById('input-minutos').value = '';
+    document.getElementById('input-nota').value = '';
+    setTodayDate();
+    currentLog = [];
+    actionCounts = newActionCounts();
+    ACTIONS.forEach(a => {
+      const el = document.getElementById(`count-${a.key}`);
+      if (el) el.textContent = '0';
+    });
+    renderLog();
+    renderKPIs();
+    renderTemporada();
+    renderExport();
+    showToast('✅ Partido guardado');
+  } catch(e) { showToast('❌ Error al guardar'); }
+  btn.disabled = false;
+  btn.textContent = '💾 Guardar partido';
+});
+
+function calcKPIs(matches) {
+  if (!matches.length) return null;
+  let totales = newActionCounts();
+  let sumaNotas = 0, notasCount = 0, sumaMinutos = 0;
+  matches.forEach(m => {
+    Object.keys(totales).forEach(k => { totales[k] += (m.acciones?.[k] || 0); });
+    if (m.nota) { sumaNotas += m.nota; notasCount++; }
+    sumaMinutos += (m.minutos || 80);
+  });
+  const totalTackles = totales.tackles_buenos + totales.tackles_fallados;
+  const efectividadTackle = totalTackles > 0 ? Math.round((totales.tackles_buenos / totalTackles) * 100) : 0;
+  const pctDominantes = totales.tackles_buenos > 0 ? Math.round((totales.tackles_dominantes / totales.tackles_buenos) * 100) : 0;
+  const notaMedia = notasCount > 0 ? (sumaNotas / notasCount).toFixed(1) : '—';
+  const promedioMinutos = Math.round(sumaMinutos / matches.length);
+  const impactoPonderado = (
+    totales.tackles_buenos * 1 + totales.tackles_dominantes * 1.5 +
+    totales.turnovers_gen * 2 + totales.tries * 3 + totales.rucks_ganados * 0.5 -
+    totales.tackles_fallados * 0.8 - totales.turnovers_ced * 1.5 - totales.penales_cometidos * 1
+  ).toFixed(1);
+  return { totales, efectividadTackle, pctDominantes, notaMedia, promedioMinutos, impactoPonderado, numPartidos: matches.length };
 }
 
-function stars(k) {
-  let s;
-  if (k.tackles >= 12 && k.fallados <= 1) s = 5;
-  else if (k.tackles >= 8 && k.fallados <= 2) s = 4;
-  else if (k.tackles >= 5) s = 3;
-  else s = 2;
-  if (k.participaciones >= 40) s = Math.min(5, s+0.5);
-  if (k.turnovers >= 2) s = Math.min(5, s+0.5);
-  return Math.round(s);
+function kpiColor(val, verde, amarillo) {
+  if (val >= verde) return 'var(--green)';
+  if (val >= amarillo) return 'var(--yellow)';
+  return 'var(--red)';
 }
-
-function cls(v, g, w) { return v >= g ? 'good' : v >= w ? 'warn' : 'bad'; }
 
 function renderKPIs() {
-  const k = calcKPIs(state.counts);
-  const st = stars(k);
-  const starStr = '★'.repeat(st) + '☆'.repeat(5-st);
-  const impColor = k.impacto >= 20 ? 'var(--verde)' : k.impacto >= 10 ? 'var(--ambar)' : 'var(--naranja)';
-  const bien = state.notes.filter(n=>n.type==='bien');
-  const mal = state.notes.filter(n=>n.type==='mal');
-  document.getElementById('kpi-content').innerHTML = `
-    <div class="score-hero">
-      <div><div class="big" style="color:${impColor}">${k.impacto}</div><div class="lbl">Impacto</div></div>
-      <div class="divider"></div>
-      <div><div class="stars">${starStr}</div><div class="lbl">Desempeño</div></div>
-      <div class="divider"></div>
-      <div><div class="big ${cls(k.participaciones,40,25)}">${k.participaciones}</div><div class="lbl">Participac.</div></div>
-    </div>
-    <div class="kpi-grid">
-      <div class="kpi-c"><div class="kl">Tackles</div><div class="kv ${cls(k.tackles,8,5)}">${k.tackles}</div><div class="ks">objetivo ≥8</div></div>
-      <div class="kpi-c"><div class="kl">Fallados</div><div class="kv ${k.fallados<=1?'good':k.fallados<=2?'warn':'bad'}">${k.fallados}</div><div class="ks">objetivo ≤2</div></div>
-      <div class="kpi-c"><div class="kl">% Efectividad</div><div class="kv ${cls(k.efectividad,85,70)}">${k.efectividad}%</div><div class="ks">objetivo ≥85%</div></div>
-      <div class="kpi-c"><div class="kl">Turnovers</div><div class="kv ${k.turnovers>=2?'good':'warn'}">${k.turnovers}</div><div class="ks">+3 pts c/u</div></div>
-      <div class="kpi-c"><div class="kl">Rucks</div><div class="kv ${cls(k.rucks,15,8)}">${k.rucks}</div><div class="ks">disputados+limpiezas</div></div>
-      <div class="kpi-c"><div class="kl">Carries</div><div class="kv">${k.carries}</div><div class="ks">${k.mpc} m/carry</div></div>
-      <div class="kpi-c"><div class="kl">Metros</div><div class="kv">${k.metros}</div><div class="ks">+0.2 pts c/u</div></div>
-      <div class="kpi-c"><div class="kl">Penales</div><div class="kv ${k.penales<=1?'good':k.penales<=2?'warn':'bad'}">${k.penales}</div><div class="ks">objetivo ≤2</div></div>
-    </div>
-    <div class="notes-review">
-      <div class="nr-title">✅ Lo que hizo bien (${bien.length})</div>
-      ${bien.length ? bien.map(n=>`<div class="nr-item">✓ ${n.txt}</div>`).join('') : '<div style="font-size:12px;color:var(--text-3);">Sin notas</div>'}
-      <div class="nr-title" style="margin-top:12px;">⚠️ A corregir (${mal.length})</div>
-      ${mal.length ? mal.map(n=>`<div class="nr-item">→ ${n.txt}</div>`).join('') : '<div style="font-size:12px;color:var(--text-3);">Sin notas</div>'}
-    </div>
-  `;
-}
-
-function saveMatch() {
-  if (state.log.length === 0) { toast('Registrá al menos una acción', true); return; }
-  const rival = document.getElementById('m-rival').value.trim() || 'Rival';
-  const date = document.getElementById('m-date').value || new Date().toISOString().slice(0,10);
-  const pos = document.getElementById('m-pos').value;
-  const k = calcKPIs(state.counts);
-  state.matches.push({
-    rival, date, pos, ...k, stars: stars(k),
-    notes: JSON.parse(JSON.stringify(state.notes))
-  });
-  save();
-  clearCurrent(true);
-  toast('Partido guardado ✓');
-  showTab('hist');
-}
-
-function clearCurrent(silent) {
-  state.counts = freshCounts();
-  state.log = [];
-  state.notes = [];
-  state.minute = 0;
-  document.getElementById('min-val').textContent = '0';
-  allActions().forEach(a => { const el = document.getElementById('cnt-'+a.id); if(el) el.textContent = '0'; });
-  const m = document.getElementById('cnt-metros'); if(m) m.textContent = '0';
-  renderLog();
-  save();
-  if (!silent) toast('Partido actual borrado');
-}
-
-let charts = [];
-function renderHistory() {
-  charts.forEach(c => { try { c.destroy(); } catch(e){} });
-  charts = [];
-  const el = document.getElementById('hist-content');
-  if (state.matches.length === 0) {
-    el.innerHTML = '<div class="empty" style="padding:50px 20px;">Todavía no hay partidos guardados.<br><br>Registrá tu primer partido en la pestaña "Registrar" y apretá "Guardar partido".</div>';
+  const container = document.getElementById('kpis-content');
+  if (!allMatches.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Cargá el primer partido para ver los KPIs</div></div>';
     return;
   }
-  const m = state.matches;
-  const avgImp = Math.round(m.reduce((s,x)=>s+x.impacto,0)/m.length);
-  const avgTck = Math.round(m.reduce((s,x)=>s+x.tackles,0)/m.length);
-  const avgPart = Math.round(m.reduce((s,x)=>s+x.participaciones,0)/m.length);
-
-  let html = `
-    <div class="score-hero">
-      <div><div class="big" style="color:var(--rojo)">${m.length}</div><div class="lbl">Partidos</div></div>
-      <div class="divider"></div>
-      <div><div class="big">${avgImp}</div><div class="lbl">Impacto prom.</div></div>
-      <div class="divider"></div>
-      <div><div class="big">${avgPart}</div><div class="lbl">Partic. prom.</div></div>
+  const kpi = calcKPIs(allMatches);
+  const last = allMatches[0];
+  const kpiLast = calcKPIs([last]);
+  container.innerHTML = `
+    <div class="section-title">Último partido — ${last.rival || '—'}</div>
+    <div class="last-match-card">
+      <div class="last-match-header">
+        <div>
+          <div class="last-match-title">${last.rival || '—'} · ${last.posicion || '—'}</div>
+          <div class="last-match-meta">${formatDate(last.fecha)} · ${last.minutos || 80} min</div>
+        </div>
+        <div>
+          <div class="last-match-result">${last.resultado || '—'}</div>
+          ${last.nota ? `<div style="font-size:12px;color:var(--text-muted);text-align:right">Nota: ${last.nota}/10</div>` : ''}
+        </div>
+      </div>
+      <div class="last-match-stats">
+        <div class="stat-mini">
+          <div class="stat-mini-val" style="color:${kpiColor(kpiLast.efectividadTackle,80,60)}">${kpiLast.efectividadTackle}%</div>
+          <div class="stat-mini-lbl">Efect. tackle</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-val" style="color:var(--green)">${last.acciones?.tries || 0}</div>
+          <div class="stat-mini-lbl">Tries</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-val" style="color:${parseFloat(kpiLast.impactoPonderado) >= 0 ? 'var(--green)' : 'var(--red)'}">${kpiLast.impactoPonderado > 0 ? '+' : ''}${kpiLast.impactoPonderado}</div>
+          <div class="stat-mini-lbl">Impacto</div>
+        </div>
+      </div>
     </div>
-    <div class="chart-card">
-      <div class="cc-title">📈 Evolución del puntaje de impacto</div>
-      <div class="chart-wrap" style="height:200px;"><canvas id="ch-imp"></canvas></div>
+    <div class="section-title">Promedios temporada (${kpi.numPartidos} partidos)</div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Efectividad tackle</div>
+        <div class="kpi-value" style="color:${kpiColor(kpi.efectividadTackle,80,60)}">${kpi.efectividadTackle}%</div>
+        <div class="kpi-sub">${kpi.totales.tackles_buenos}B / ${kpi.totales.tackles_fallados}F</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${kpi.efectividadTackle}%;background:${kpiColor(kpi.efectividadTackle,80,60)}"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Tackles dominantes</div>
+        <div class="kpi-value" style="color:${kpiColor(kpi.pctDominantes,25,15)}">${kpi.pctDominantes}%</div>
+        <div class="kpi-sub">${kpi.totales.tackles_dominantes} de ${kpi.totales.tackles_buenos}</div>
+        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(kpi.pctDominantes,100)}%;background:${kpiColor(kpi.pctDominantes,25,15)}"></div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Turnovers generados</div>
+        <div class="kpi-value" style="color:var(--green)">${kpi.totales.turnovers_gen}</div>
+        <div class="kpi-sub">Total temporada</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Tries</div>
+        <div class="kpi-value" style="color:var(--red)">${kpi.totales.tries}</div>
+        <div class="kpi-sub">Total temporada</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Nota media</div>
+        <div class="kpi-value" style="color:${kpiColor(parseFloat(kpi.notaMedia)||0,8,6)}">${kpi.notaMedia}</div>
+        <div class="kpi-sub">Sobre 10</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Impacto ponderado</div>
+        <div class="kpi-value" style="color:${parseFloat(kpi.impactoPonderado)>=0?'var(--green)':'var(--red)'}">${parseFloat(kpi.impactoPonderado)>0?'+':''}${kpi.impactoPonderado}</div>
+        <div class="kpi-sub">Total acumulado</div>
+      </div>
     </div>
-    <div class="chart-card">
-      <div class="cc-title">🛡️ Tackles y participaciones por partido</div>
-      <div class="chart-wrap" style="height:${Math.max(180, m.length*46+40)}px;"><canvas id="ch-tck"></canvas></div>
+    <div class="section-title">Semáforo de rendimiento</div>
+    <div class="traffic-lights">
+      ${trafficLight('Efectividad de tackles', kpi.efectividadTackle + '%', kpi.efectividadTackle, 80, 60)}
+      ${trafficLight('Tackles dominantes', kpi.pctDominantes + '%', kpi.pctDominantes, 25, 15)}
+      ${trafficLight('Ratio turnover (G/C)', kpi.totales.turnovers_ced > 0 ? (kpi.totales.turnovers_gen / kpi.totales.turnovers_ced).toFixed(1) + 'x' : '—', kpi.totales.turnovers_ced > 0 ? kpi.totales.turnovers_gen / kpi.totales.turnovers_ced : 999, 2, 1)}
+      ${trafficLight('Penales cometidos', kpi.totales.penales_cometidos + ' total', kpi.numPartidos > 0 ? Math.max(0, 5 - kpi.totales.penales_cometidos/kpi.numPartidos*5) : 5, 4, 2)}
     </div>
   `;
-  m.slice().reverse().forEach((x, ri) => {
-    const i = m.length - 1 - ri;
-    const impColor = x.impacto >= 20 ? 'var(--verde)' : x.impacto >= 10 ? 'var(--ambar)' : 'var(--naranja)';
-    html += `<div class="match-card">
-      <div class="mc-head">
-        <div>
-          <div class="mc-rival">vs ${x.rival}</div>
-          <div class="mc-date">${x.date} · ${x.pos==='ala'?'Ala (6/7)':'2ª línea (4/5)'}</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="mc-stars">${'★'.repeat(x.stars)}${'☆'.repeat(5-x.stars)}</div>
-          <div class="mc-impacto" style="color:${impColor}">${x.impacto}</div>
-        </div>
-      </div>
-      <div class="mc-stats">
-        <div class="mc-stat"><div class="v ${cls(x.tackles,8,5)}">${x.tackles}</div><div class="l">Tackles</div></div>
-        <div class="mc-stat"><div class="v">${x.efectividad}%</div><div class="l">Efect.</div></div>
-        <div class="mc-stat"><div class="v">${x.turnovers}</div><div class="l">Turnov.</div></div>
-        <div class="mc-stat"><div class="v">${x.participaciones}</div><div class="l">Particip.</div></div>
-      </div>
-      <div class="mc-del" onclick="delMatch(${i})">Eliminar partido</div>
-    </div>`;
-  });
-  el.innerHTML = html;
-
-  setTimeout(() => {
-    const labels = m.map(x => x.rival.length > 8 ? x.rival.slice(0,8) : x.rival);
-    Chart.defaults.color = '#B0A89C';
-    Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
-    charts.push(new Chart(document.getElementById('ch-imp'), {
-      type: 'line',
-      data: { labels, datasets: [{ data: m.map(x=>x.impacto), borderColor: '#C8102E',
-        backgroundColor: 'rgba(200,16,46,0.12)', fill: true, tension: 0.3, pointRadius: 5,
-        pointBackgroundColor: '#C8102E', borderWidth: 2.5 }] },
-      options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
-        scales:{ x:{ticks:{font:{size:10}}}, y:{ticks:{font:{size:10}}} } }
-    }));
-    charts.push(new Chart(document.getElementById('ch-tck'), {
-      type: 'bar',
-      data: { labels, datasets: [
-        { label:'Tackles', data: m.map(x=>x.tackles), backgroundColor:'#378ADD' },
-        { label:'Participaciones', data: m.map(x=>x.participaciones), backgroundColor:'#1D9E75' }
-      ]},
-      options: { responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{display:true, labels:{font:{size:11}, boxWidth:12}}},
-        scales:{ x:{ticks:{font:{size:10}}}, y:{ticks:{font:{size:10}}} } }
-    }));
-  }, 60);
 }
 
-function delMatch(i) {
-  if (confirm('¿Eliminar este partido de la temporada?')) {
-    state.matches.splice(i, 1);
-    save();
-    renderHistory();
-    toast('Partido eliminado');
+function trafficLight(label, value, num, green, yellow) {
+  const color = num >= green ? 'var(--green)' : num >= yellow ? 'var(--yellow)' : 'var(--red)';
+  return `
+    <div class="tl-row">
+      <span class="tl-label">${label}</span>
+      <div class="tl-right">
+        <span class="tl-value" style="color:${color}">${value}</span>
+        <div class="tl-dot" style="background:${color}"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTemporada() {
+  const container = document.getElementById('temporada-content');
+  if (!allMatches.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">Cargá el primer partido para ver la temporada</div></div>';
+    return;
   }
+  const sorted = [...allMatches].sort((a, b) => a.fecha?.localeCompare(b.fecha));
+  container.innerHTML = `
+    <div class="chart-card">
+      <div class="chart-title">Efectividad de tackles por partido</div>
+      <div class="chart-container"><canvas id="chart-tackles"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Nota por partido</div>
+      <div class="chart-container"><canvas id="chart-notas"></canvas></div>
+    </div>
+    <div class="section-title">Historial de partidos</div>
+    <div class="match-history">
+      ${allMatches.map(m => matchCard(m)).join('')}
+    </div>
+  `;
+  const labels = sorted.map(m => m.rival || '?');
+  const efects = sorted.map(m => {
+    const total = (m.acciones?.tackles_buenos || 0) + (m.acciones?.tackles_fallados || 0);
+    return total > 0 ? Math.round((m.acciones.tackles_buenos / total) * 100) : 0;
+  });
+  if (charts.tackles) charts.tackles.destroy();
+  charts.tackles = new Chart(document.getElementById('chart-tackles').getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: efects, backgroundColor: efects.map(v => v >= 80 ? '#22c55e' : v >= 60 ? '#f59e0b' : '#C8102E'), borderRadius: 6 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { color: '#888', callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#888' }, grid: { display: false } } } }
+  });
+  const notas = sorted.map(m => m.nota || null);
+  if (charts.notas) charts.notas.destroy();
+  charts.notas = new Chart(document.getElementById('chart-notas').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [{ data: notas, borderColor: '#C8102E', backgroundColor: 'rgba(200,16,46,0.1)', fill: true, tension: 0.3, pointBackgroundColor: '#C8102E', pointRadius: 5, spanGaps: true }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 10, ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#888' }, grid: { display: false } } } }
+  });
+  container.querySelectorAll('.btn-delete-match').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const id = e.currentTarget.dataset.id;
+      if (!confirm('¿Eliminar este partido?')) return;
+      try {
+        await deleteMatch(id);
+        allMatches = allMatches.filter(m => m.id !== id);
+        renderKPIs(); renderTemporada(); renderExport();
+        showToast('🗑️ Partido eliminado');
+      } catch(err) { showToast('❌ Error al eliminar'); }
+    });
+  });
 }
 
-function buildCSV() {
-  const header = ['Fecha','Rival','Posicion','Tackles','Tackles fallados','% Efectividad','Turnovers','Rucks','Carries','Metros','Penales','Participaciones','Puntaje impacto'];
-  const rows = state.matches.map(x => [
-    x.date, '"'+x.rival+'"', x.pos==='ala'?'Ala (6/7)':'Segunda linea (4/5)',
-    x.tackles, x.fallados, x.efectividad, x.turnovers, x.rucks, x.carries, x.metros, x.penales, x.participaciones, x.impacto
-  ].join(','));
-  return [header.join(','), ...rows].join('\n');
+function matchCard(m) {
+  const total = (m.acciones?.tackles_buenos || 0) + (m.acciones?.tackles_fallados || 0);
+  const efect = total > 0 ? Math.round((m.acciones.tackles_buenos / total) * 100) : 0;
+  return `
+    <div class="match-card">
+      <div class="match-card-left">
+        <div class="match-card-rival">vs. ${m.rival || '—'}</div>
+        <div class="match-card-meta">${formatDate(m.fecha)} · ${m.posicion || '—'} · ${m.minutos || 80}min</div>
+        <div class="match-card-actions">🏉${m.acciones?.tries||0} · 💪${m.acciones?.tackles_buenos||0}B/${m.acciones?.tackles_fallados||0}F · 🔥${m.acciones?.tackles_dominantes||0}</div>
+      </div>
+      <div class="match-card-right">
+        <div class="match-card-score">${m.resultado || '—'}</div>
+        <div style="font-size:11px;color:var(--text-muted)">Efect: ${efect}%${m.nota ? ` · ${m.nota}/10` : ''}</div>
+        <button class="btn-delete-match" data-id="${m.id}">🗑️</button>
+      </div>
+    </div>
+  `;
 }
 
 function renderExport() {
-  const box = document.getElementById('csv-box');
-  box.textContent = state.matches.length ? buildCSV() : 'Sin partidos guardados todavía.';
+  const kpi = allMatches.length ? calcKPIs(allMatches) : null;
+  document.getElementById('exp-partidos').textContent = allMatches.length;
+  document.getElementById('exp-tries').textContent = kpi ? kpi.totales.tries : 0;
+  document.getElementById('exp-tackles').textContent = kpi ? kpi.totales.tackles_buenos : 0;
+  document.getElementById('exp-efectividad').textContent = kpi ? kpi.efectividadTackle + '%' : '—';
 }
 
-function copyCSV() {
-  if (!state.matches.length) { toast('No hay datos', true); return; }
-  const csv = buildCSV();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(csv).then(()=>toast('CSV copiado ✓')).catch(()=>fallbackCopy(csv));
-  } else fallbackCopy(csv);
-}
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text; document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); toast('CSV copiado ✓'); } catch(e){ toast('No se pudo copiar', true); }
-  document.body.removeChild(ta);
-}
-function downloadCSV() {
-  if (!state.matches.length) { toast('No hay datos', true); return; }
-  const blob = new Blob([buildCSV()], {type:'text/csv;charset=utf-8'});
+document.getElementById('btn-export-csv').addEventListener('click', () => {
+  if (!allMatches.length) return showToast('No hay datos para exportar');
+  const headers = ['Fecha','Rival','Posicion','Resultado','Minutos','Nota',...ACTIONS.map(a => a.label),'Efectividad%','Impacto'];
+  const rows = allMatches.map(m => {
+    const kpi = calcKPIs([m]);
+    return [m.fecha||'', m.rival||'', m.posicion||'', m.resultado||'', m.minutos||80, m.nota||'', ...ACTIONS.map(a => m.acciones?.[a.key]||0), kpi.efectividadTackle, kpi.impactoPonderado];
+  });
+  downloadCSV('pedro32_temporada.csv', [headers, ...rows]);
+  showToast('📥 CSV descargado');
+});
+
+document.getElementById('btn-export-resumen').addEventListener('click', () => {
+  if (!allMatches.length) return showToast('No hay datos para exportar');
+  const headers = ['Fecha','Rival','Resultado','Efect.Tackle%','Tries','Tackles Buenos','Tackles Fallados','Dominantes','Turnovers Gen.','Turnovers Ced.','Nota','Impacto'];
+  const rows = allMatches.map(m => {
+    const kpi = calcKPIs([m]);
+    return [m.fecha||'', m.rival||'', m.resultado||'', kpi.efectividadTackle, m.acciones?.tries||0, m.acciones?.tackles_buenos||0, m.acciones?.tackles_fallados||0, m.acciones?.tackles_dominantes||0, m.acciones?.turnovers_gen||0, m.acciones?.turnovers_ced||0, m.nota||'', kpi.impactoPonderado];
+  });
+  downloadCSV('pedro32_resumen.csv', [headers, ...rows]);
+  showToast('📋 Resumen descargado');
+});
+
+function downloadCSV(filename, rows) {
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = 'pedro32_temporada_2026.csv';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
-  toast('Descargando...');
 }
 
-function showTab(t) {
-  ['reg','kpi','hist','exp'].forEach(x => {
-    document.getElementById('s-'+x).classList.toggle('active', x===t);
-    document.getElementById('tb-'+x).classList.toggle('active', x===t);
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const panel = btn.dataset.panel;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`panel-${panel}`).classList.add('active');
   });
-  document.getElementById('match-bar').style.display = t==='reg' ? 'flex' : 'none';
-  if (t==='kpi') renderKPIs();
-  if (t==='hist') renderHistory();
-  if (t==='exp') renderExport();
-}
-
-let toastTimer;
-function toast(msg, err) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.style.background = err ? 'var(--naranja)' : 'var(--verde)';
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>el.classList.remove('show'), 2000);
-}
-
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('install-banner').classList.add('show');
 });
-function installApp() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(()=>{
-      document.getElementById('install-banner').classList.remove('show');
-      deferredPrompt = null;
-    });
-  }
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
 }
 
-function initDate() {
-  const d = document.getElementById('m-date');
-  if (!d.value) d.value = new Date().toISOString().slice(0,10);
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
 }
-
-load();
-state.counts = state.counts || freshCounts();
-document.getElementById('min-val').textContent = state.minute || 0;
-initButtons();
-initDate();
-renderLog();
-setNoteType(state.noteType || 'bien');
 </script>
 </body>
 </html>
