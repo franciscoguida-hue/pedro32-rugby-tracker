@@ -351,7 +351,8 @@ body {
     3. Cada fila es un partido de un jugador con todos sus KPIs e índice.<br><br>
     Incluye los partidos de <b>todos los jugadores</b> del plantel.
   </div>
-  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v3</div>
+  <div id="backup-box"></div>
+  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v4</div>
 </div>
 
 </div>
@@ -540,6 +541,7 @@ function load(){
     p.draft.log = p.draft.log || []; p.draft.notes = p.draft.notes || [];
     p.matches = p.matches || [];
   });
+  if (!store.backup) store.backup = { url:'', secret:'', lastStatus:'', lastMsg:'', lastTime:'' };
   if (!store.activeId || !store.players.find(p=>p.id===store.activeId)) store.activeId = store.players[0].id;
   active = store.players.find(p => p.id === store.activeId);
 }
@@ -925,12 +927,15 @@ function saveMatch(){
     rpe: JSON.parse(JSON.stringify(active.draft.rpe||{})),
     notes: JSON.parse(JSON.stringify(active.draft.notes))
   };
+  match.synced = false;
   active.matches.push(match);
+  const player = active;
   clearCurrent(true);
   active.draft.ratings = null;
   save();
   toast('Partido guardado ✓');
   showTab('hist');
+  syncMatch(match, player);
 }
 
 /* ---------- TEMPORADA ---------- */
@@ -1023,6 +1028,7 @@ function buildCSV(){
 function renderExport(){
   const total = store.players.reduce((s,p)=>s+p.matches.length,0);
   document.getElementById('csv-box').textContent = total ? buildCSV() : 'Sin partidos guardados todavía.';
+  renderBackup();
 }
 function copyCSV(){
   const total = store.players.reduce((s,p)=>s+p.matches.length,0);
@@ -1044,6 +1050,76 @@ function downloadCSV(){
   const a = document.createElement('a'); a.href=url; a.download='rugby_temporada_2026.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   toast('Descargando...');
+}
+
+/* ---------- BACKUP AUTOMÁTICO A GOOGLE SHEETS ---------- */
+function backupHeader(){ return ['ID','Jugador','Numero','Fecha','Rival','Posicion','Minutos','Indice','Estrellas','Impacto','Tackles comp','Tackles err','% Efectividad','Tackles dom','Carries','Carries pos','% Linea ventaja','% Conservacion','Metros','Metros postcont','Quiebres','Turnovers','Rucks of llegadas','% Rucks efect','Lineout recep','% Lineout','Penales','Knock-ons','Acc utiles','Acc totales','Tries','Try assists','RPE','Fatiga','Muscular','Sueno','Golpe cabeza','Backup ts']; }
+function backupRow(p,x){ const k=x.kpis, r=x.rpe||{}; return [x.id,p.name,p.num,x.date,x.rival,posLabel(x.pos),x.minute,Number(x.index.toFixed(2)),x.stars,k.impacto,k.tackles,k.tk_err,k.efectividad,k.tk_dom,k.carries,k.carry_pos,k.exito_vent,k.conservacion,k.metros,k.m_post,k.quiebres,k.turnovers,k.ruck_lleg,k.ruck_efect,k.lo_recep,k.lo_efect,k.penales,k.knock,k.utiles,k.acc_totales,k.tries,k.try_assist,r.esfuerzo||'',r.fatiga||'',r.muscular||'',r.sueno||'',(r.cabeza==='si'||k.cabeza>0)?'SI':'no',new Date().toISOString()]; }
+async function backupPost(rows){
+  const cfg = store.backup||{};
+  if(!cfg.url) return { ok:false, error:'sin-url' };
+  const res = await fetch(cfg.url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ secret: cfg.secret||'', header: backupHeader(), rows }) });
+  const txt = await res.text(); let j; try { j = JSON.parse(txt); } catch(e){ j = { ok: res.ok }; }
+  return j;
+}
+function pendingCount(){ let n=0; store.players.forEach(p=>p.matches.forEach(x=>{ if(!x.synced) n++; })); return n; }
+function setBackupStatus(ok,msg){ store.backup.lastStatus = ok?'ok':'err'; store.backup.lastMsg = msg||''; store.backup.lastTime = new Date().toLocaleString('es-AR'); save(); renderBackupStatus(); }
+function renderBackupStatus(){
+  const el = document.getElementById('bk-status'); if(!el) return;
+  const b = store.backup||{}; const pend = pendingCount(); let s;
+  if(b.lastStatus==='ok') s = `<span style="color:var(--verde)">✓ ${b.lastMsg||'OK'}</span> · ${b.lastTime||''}`;
+  else if(b.lastStatus==='err') s = `<span style="color:var(--naranja)">✕ ${b.lastMsg||'error'}</span> · ${b.lastTime||''}`;
+  else s = '<span style="color:var(--text-3)">Sin respaldos todavía</span>';
+  el.innerHTML = s + (pend>0 ? ` · <b>${pend} pendiente(s)</b>` : '');
+}
+function saveBackupCfg(){
+  store.backup.url = document.getElementById('bk-url').value.trim();
+  store.backup.secret = document.getElementById('bk-secret').value.trim();
+  save(); toast('Configuración guardada ✓'); renderBackupStatus();
+}
+async function testBackup(){
+  saveBackupCfg();
+  if(!store.backup.url){ toast('Pegá la URL del Web App', true); return; }
+  toast('Probando conexión...');
+  try { const j = await backupPost([]); if(j&&j.ok){ setBackupStatus(true,'Conexión OK'); toast('Conexión OK ✓'); } else { setBackupStatus(false,(j&&j.error)||'sin ok'); toast('Respondió con error', true); } }
+  catch(err){ setBackupStatus(false, String(err)); toast('No se pudo conectar', true); }
+}
+async function syncMatch(match, player){
+  if(!store.backup || !store.backup.url) return;
+  try {
+    const j = await backupPost([ backupRow(player||active, match) ]);
+    if(j && j.ok){ match.synced = true; save(); setBackupStatus(true,'Último partido respaldado'); toast('Backup en Sheets ✓'); }
+    else { setBackupStatus(false,(j&&j.error)||'error'); toast('Backup falló (queda local)', true); }
+  } catch(err){ setBackupStatus(false, String(err)); toast('Backup sin conexión (queda local)', true); }
+}
+async function syncPending(){
+  if(!store.backup || !store.backup.url){ toast('Configurá la URL primero', true); return; }
+  const rows=[], map=[];
+  store.players.forEach(p=> p.matches.forEach(x=>{ if(!x.synced){ rows.push(backupRow(p,x)); map.push(x); } }));
+  if(rows.length===0){ toast('Todo está respaldado ✓'); return; }
+  toast('Sincronizando '+rows.length+'...');
+  try {
+    const j = await backupPost(rows);
+    if(j && j.ok){ map.forEach(x=>x.synced=true); save(); setBackupStatus(true, (j.added!=null?j.added:rows.length)+' partidos respaldados'); toast('Sincronizado ✓'); }
+    else { setBackupStatus(false,(j&&j.error)||'error'); toast('Falló la sincronización', true); }
+  } catch(err){ setBackupStatus(false, String(err)); toast('Sin conexión', true); }
+}
+function renderBackup(){
+  const b = store.backup||{}; const box = document.getElementById('backup-box'); if(!box) return;
+  box.innerHTML = `
+    <div class="section-title" style="margin-top:22px;">☁️ Backup automático a Google Sheets</div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:12px;">Pegá la URL del Web App de Google Apps Script. Cada partido que guardes se agrega solo como una fila en tu Google Sheet.</div>
+      <div class="eval-q"><label>URL del Web App</label><input type="text" id="bk-url" placeholder="https://script.google.com/macros/s/.../exec" value="${b.url||''}"></div>
+      <div class="eval-q"><label>Clave secreta (opcional)</label><input type="text" id="bk-secret" placeholder="dejar vacío si no usás" value="${b.secret||''}"></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-export" style="flex:1;margin:0;" onclick="saveBackupCfg()">Guardar</button>
+        <button class="btn-export sec" style="flex:1;margin:0;" onclick="testBackup()">Probar conexión</button>
+      </div>
+      <button class="btn-export sec" style="margin-top:8px;" onclick="syncPending()">↻ Sincronizar partidos pendientes</button>
+      <div id="bk-status" style="font-size:11px;margin-top:10px;text-align:center;"></div>
+    </div>`;
+  renderBackupStatus();
 }
 
 /* ---------- ROSTER MODAL ---------- */
