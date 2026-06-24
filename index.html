@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -351,6 +352,7 @@ body {
     3. Cada fila es un partido de un jugador con todos sus KPIs e índice.<br><br>
     Incluye los partidos de <b>todos los jugadores</b> del plantel.
   </div>
+  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v3</div>
 </div>
 
 </div>
@@ -1126,6 +1128,19 @@ function toast(msg, err){
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt=e; document.getElementById('install-banner').classList.add('show'); });
 function installApp(){ if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>{ document.getElementById('install-banner').classList.remove('show'); deferredPrompt=null; }); } }
+
+/* ---------- SERVICE WORKER (auto-actualización) ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+      reg.update();
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return; refreshing = true; location.reload();
+      });
+    }).catch(()=>{});
+  });
+}
 
 /* ---------- INIT ---------- */
 load();
