@@ -2,961 +2,1134 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#3A2417">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#C8102E">
-<title>Pedro #32 · Rugby Tracker</title>
-<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Pedro #32 Rugby Tracker&quot;,&quot;short_name&quot;:&quot;Rugby32&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0a0a0a&quot;,&quot;theme_color&quot;:&quot;#C8102E&quot;}">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="apple-mobile-web-app-title" content="Belgrano AC">
+<title>Belgrano AC · Rugby Tracker</title>
+
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIkJlbGdyYW5vIEFDIFJ1Z2J5IFRyYWNrZXIiLCAic2hvcnRfbmFtZSI6ICJCZWxncmFubyBBQyIsICJzdGFydF91cmwiOiAiLiIsICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLCAiYmFja2dyb3VuZF9jb2xvciI6ICIjMTYxMTBDIiwgInRoZW1lX2NvbG9yIjogIiMzQTI0MTcifQ==">
+
 <style>
-  :root {
-    --red: #C8102E;
-    --red-dark: #9e0d24;
-    --red-glow: rgba(200,16,46,0.25);
-    --bg: #0a0a0a;
-    --surface: #141414;
-    --surface2: #1e1e1e;
-    --surface3: #2a2a2a;
-    --border: rgba(255,255,255,0.08);
-    --text: #f0f0f0;
-    --text-muted: #888;
-    --text-dim: #555;
-    --green: #22c55e;
-    --yellow: #f59e0b;
-    --blue: #3b82f6;
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; overflow: hidden; }
-  #auth-screen {
-    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-    background: var(--bg); z-index: 100; padding: 24px;
-  }
-  .auth-card {
-    width: 100%; max-width: 380px; background: var(--surface);
-    border: 1px solid var(--border); border-radius: 20px; padding: 36px 28px;
-  }
-  .auth-logo { text-align: center; margin-bottom: 28px; }
-  .auth-logo .badge {
-    display: inline-flex; align-items: center; gap: 10px;
-    background: var(--red); color: #fff; border-radius: 50px;
-    padding: 10px 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
-  }
-  .auth-logo .num { font-size: 28px; font-weight: 900; line-height: 1; }
-  .auth-title { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 6px; }
-  .auth-sub { font-size: 13px; color: var(--text-muted); text-align: center; margin-bottom: 28px; }
-  .auth-field { margin-bottom: 14px; }
-  .auth-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .auth-field input {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text);
-    font-size: 15px; outline: none; transition: border-color 0.2s;
-  }
-  .auth-field input:focus { border-color: var(--red); }
-  .btn-auth {
-    width: 100%; background: var(--red); color: #fff; border: none;
-    border-radius: var(--radius-sm); padding: 14px; font-size: 15px; font-weight: 700;
-    cursor: pointer; margin-top: 8px; transition: background 0.2s;
-  }
-  .btn-auth:hover { background: var(--red-dark); }
-  .auth-toggle { text-align: center; margin-top: 18px; font-size: 13px; color: var(--text-muted); }
-  .auth-toggle span { color: var(--red); cursor: pointer; font-weight: 600; }
-  .auth-forgot { text-align: center; margin-top: 10px; font-size: 12px; }
-  .auth-forgot span { color: var(--text-dim); cursor: pointer; }
-  .auth-forgot span:hover { color: var(--text-muted); }
-  .auth-error { background: rgba(200,16,46,0.1); border: 1px solid rgba(200,16,46,0.3); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: #ff6b6b; margin-bottom: 14px; display: none; }
-  .auth-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: var(--green); margin-bottom: 14px; display: none; }
-  #app { display: none; flex-direction: column; height: 100%; }
-  #app.visible { display: flex; }
-  .app-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 16px 10px; background: var(--surface);
-    border-bottom: 1px solid var(--border); flex-shrink: 0;
-  }
-  .header-brand { display: flex; align-items: center; gap: 10px; }
-  .header-badge {
-    background: var(--red); color: #fff; border-radius: 50px;
-    padding: 5px 12px; font-size: 12px; font-weight: 800; letter-spacing: 0.3px;
-  }
-  .header-title { font-size: 15px; font-weight: 700; }
-  .header-sub { font-size: 11px; color: var(--text-muted); }
-  .btn-logout {
-    background: var(--surface3); border: 1px solid var(--border); border-radius: 8px;
-    color: var(--text-muted); padding: 6px 12px; font-size: 12px; cursor: pointer;
-  }
-  .app-content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .tab-bar {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    background: var(--surface); border-top: 1px solid var(--border); flex-shrink: 0;
-  }
-  .tab-btn {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 3px; padding: 10px 4px 12px; background: none; border: none;
-    color: var(--text-dim); cursor: pointer; font-size: 10px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.3px; transition: color 0.2s;
-    border-top: 2px solid transparent;
-  }
-  .tab-btn.active { color: var(--red); border-top-color: var(--red); }
-  .tab-btn svg { width: 20px; height: 20px; }
-  .panel { display: none; padding: 16px; }
-  .panel.active { display: block; }
-  .section-title {
-    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--text-dim); margin-bottom: 12px; margin-top: 20px;
-  }
-  .section-title:first-child { margin-top: 0; }
-  .match-form { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; border: 1px solid var(--border); }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-group label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
-  .form-group input, .form-group select {
-    background: var(--surface2); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 10px 12px; color: var(--text);
-    font-size: 14px; outline: none; width: 100%;
-  }
-  .form-group input:focus, .form-group select:focus { border-color: var(--red); }
-  .form-group select option { background: var(--surface2); }
-  .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
-  .action-btn {
-    background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;
-    cursor: pointer; transition: all 0.15s; color: var(--text);
-    -webkit-user-select: none; user-select: none;
-  }
-  .action-btn:active { transform: scale(0.95); }
-  .action-btn.positive { border-color: rgba(34,197,94,0.3); }
-  .action-btn.positive:active { background: rgba(34,197,94,0.1); }
-  .action-btn.negative { border-color: rgba(239,68,68,0.3); }
-  .action-btn.negative:active { background: rgba(239,68,68,0.1); }
-  .action-btn.neutral { border-color: rgba(59,130,246,0.3); }
-  .action-btn.neutral:active { background: rgba(59,130,246,0.1); }
-  .action-icon { font-size: 24px; line-height: 1; }
-  .action-label { font-size: 12px; font-weight: 700; text-align: center; }
-  .action-count { font-size: 20px; font-weight: 900; color: var(--red); }
-  .log-area { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
-  .log-header { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .log-header span { font-size: 13px; font-weight: 700; }
-  .btn-clear-log { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); padding: 4px 10px; font-size: 11px; cursor: pointer; }
-  .log-list { max-height: 220px; overflow-y: auto; }
-  .log-item {
-    padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 13px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .log-item:last-child { border-bottom: none; }
-  .log-item-left { display: flex; gap: 8px; align-items: center; }
-  .log-item-time { font-size: 11px; color: var(--text-dim); }
-  .log-item-undo { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px; padding: 2px 6px; }
-  .btn-save-match {
-    width: 100%; background: var(--red); color: #fff; border: none;
-    border-radius: var(--radius); padding: 16px; font-size: 16px; font-weight: 800;
-    cursor: pointer; margin-top: 16px; letter-spacing: 0.3px; transition: background 0.2s;
-  }
-  .btn-save-match:hover { background: var(--red-dark); }
-  .btn-save-match:disabled { background: var(--surface3); color: var(--text-dim); cursor: not-allowed; }
-  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .kpi-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px; display: flex; flex-direction: column; gap: 4px;
-  }
-  .kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
-  .kpi-value { font-size: 28px; font-weight: 900; line-height: 1; }
-  .kpi-sub { font-size: 11px; color: var(--text-dim); }
-  .kpi-bar { height: 4px; border-radius: 2px; background: var(--surface3); margin-top: 6px; overflow: hidden; }
-  .kpi-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
-  .green { color: var(--green); } .yellow { color: var(--yellow); } .red-c { color: var(--red); }
-  .last-match-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 16px; margin-bottom: 16px;
-  }
-  .last-match-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-  .last-match-title { font-size: 14px; font-weight: 700; }
-  .last-match-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-  .last-match-result { font-size: 22px; font-weight: 900; }
-  .last-match-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
-  .stat-mini { text-align: center; }
-  .stat-mini-val { font-size: 18px; font-weight: 800; }
-  .stat-mini-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
-  .traffic-lights { display: flex; flex-direction: column; gap: 8px; }
-  .tl-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; }
-  .tl-label { font-size: 13px; font-weight: 600; }
-  .tl-right { display: flex; align-items: center; gap: 10px; }
-  .tl-value { font-size: 16px; font-weight: 800; }
-  .tl-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
-  .chart-title { font-size: 13px; font-weight: 700; margin-bottom: 12px; }
-  .chart-container { position: relative; height: 180px; }
-  .match-history { display: flex; flex-direction: column; gap: 8px; }
-  .match-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
-  }
-  .match-card-left { display: flex; flex-direction: column; gap: 3px; }
-  .match-card-rival { font-size: 14px; font-weight: 700; }
-  .match-card-meta { font-size: 11px; color: var(--text-muted); }
-  .match-card-score { font-size: 18px; font-weight: 900; }
-  .match-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-  .match-card-actions { font-size: 11px; color: var(--text-muted); }
-  .btn-delete-match { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px; padding: 2px 0; }
-  .export-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
-  .export-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.6; }
-  .btn-export {
-    width: 100%; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 14px; font-size: 14px; font-weight: 700;
-    color: var(--text); cursor: pointer; margin-bottom: 10px; transition: border-color 0.2s;
-  }
-  .btn-export:hover { border-color: var(--red); }
-  .season-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .summary-card { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
-  .summary-val { font-size: 24px; font-weight: 900; color: var(--red); }
-  .summary-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
-  .toast {
-    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
-    background: var(--surface3); border: 1px solid var(--border); border-radius: 50px;
-    padding: 10px 20px; font-size: 13px; font-weight: 600; white-space: nowrap;
-    opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .loading-overlay {
-    position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center;
-    justify-content: center; z-index: 200; flex-direction: column; gap: 16px;
-  }
-  .loading-spinner {
-    width: 40px; height: 40px; border: 3px solid var(--surface3);
-    border-top-color: var(--red); border-radius: 50%; animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-dim); }
-  .empty-state-icon { font-size: 40px; margin-bottom: 12px; }
-  .empty-state-text { font-size: 14px; }
+:root {
+  /* Belgrano Athletic Club — oro y chocolate */
+  --rojo: #6B4423;        /* chocolate medio (interactivo/topbar) */
+  --rojo-osc: #3A2417;    /* chocolate profundo */
+  --oro: #C9A24B;         /* oro */
+  --oro-osc: #9E7B2C;     /* oro oscuro */
+  --oro-claro: #E4CD8A;   /* oro claro */
+  --verde: #2E9E6F;
+  --verde-osc: #155B41;
+  --naranja: #CF6B3C;
+  --azul: #C9A24B;        /* acento info → oro */
+  --ambar: #C9A24B;       /* estrellas / warn → oro */
+  --bg: #16110C;
+  --surface: #221A12;
+  --surface-2: #2E2417;
+  --border: rgba(233,210,160,0.10);
+  --border-2: rgba(233,210,160,0.20);
+  --text: #F5EEE0;
+  --text-2: #B6A988;
+  --text-3: #786B52;
+  --radius: 14px;
+  --radius-lg: 20px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Trebuchet MS', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  padding-bottom: 84px;
+}
+
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: linear-gradient(135deg, var(--rojo) 0%, var(--rojo-osc) 100%);
+  padding: max(env(safe-area-inset-top), 14px) 14px 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  border-bottom: 2px solid var(--oro);
+}
+.stripe-bar {
+  height: 6px;
+  background: repeating-linear-gradient(135deg,
+    var(--oro) 0, var(--oro) 14px,
+    var(--rojo-osc) 14px, var(--rojo-osc) 28px);
+  position: sticky; top: 0; z-index: 99;
+}
+.player-btn {
+  display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.25); border-radius: 14px; padding: 6px 12px 6px 6px;
+  cursor: pointer; color: white; font-family: inherit; flex: 1; min-width: 0;
+}
+.jersey {
+  width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
+  background: rgba(255,255,255,0.2); border: 1.5px solid rgba(255,255,255,0.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: bold; color: white; font-family: 'Arial Black', sans-serif;
+}
+.player-btn .name { font-size: 15px; font-weight: bold; color: white; line-height: 1.1; text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-btn .pos { font-size: 10.5px; color: rgba(255,255,255,0.82); text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-btn .chev { font-size: 12px; color: rgba(255,255,255,0.7); margin-left: auto; flex-shrink: 0; }
+.season-pill {
+  background: rgba(0,0,0,0.22); color: white; font-size: 10.5px; font-weight: bold;
+  padding: 6px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.25);
+  white-space: nowrap; flex-shrink: 0;
+}
+
+.match-bar {
+  background: var(--surface); padding: 10px 14px;
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+}
+.match-bar input, .match-bar select {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+  border-radius: 10px; padding: 8px 10px; font-size: 13px; font-family: inherit;
+}
+.match-bar input[type=text] { flex: 1; min-width: 90px; }
+.match-bar input[type=date] { width: 130px; }
+.match-bar select { flex: 1; min-width: 120px; }
+
+.minute-box {
+  display: flex; align-items: center; gap: 0; margin-left: auto;
+  background: var(--surface-2); border-radius: 10px; border: 1px solid var(--border); overflow: hidden;
+}
+.minute-box button { background: none; border: none; color: var(--text-2); font-size: 18px; width: 34px; height: 36px; cursor: pointer; }
+.minute-box button:active { background: var(--rojo); color: white; }
+.minute-box .min-val { font-size: 15px; font-weight: bold; min-width: 36px; text-align: center; }
+.minute-box .min-label { font-size: 9px; color: var(--text-3); display: block; text-align: center; }
+
+.content { padding: 12px 12px 0; }
+.section { display: none; }
+.section.active { display: block; }
+
+.group { margin-bottom: 12px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.group-head {
+  display: flex; align-items: center; gap: 8px; padding: 11px 12px; cursor: pointer;
+  background: var(--surface-2); user-select: none;
+}
+.group-head .g-title { font-size: 13px; font-weight: bold; flex: 1; }
+.group-head .g-sum { font-size: 11px; color: var(--text-3); }
+.group-head .g-chev { font-size: 12px; color: var(--text-3); transition: transform 0.2s; }
+.group.collapsed .g-chev { transform: rotate(-90deg); }
+.group.collapsed .group-body { display: none; }
+.group-body { padding: 8px; }
+
+.kpi-row {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 11px; padding: 7px 8px 7px 11px; margin-bottom: 6px;
+}
+.kpi-row:last-child { margin-bottom: 0; }
+.kpi-row.neg { border-color: rgba(216,90,48,0.4); }
+.kpi-row.flash { animation: fl 0.3s; }
+@keyframes fl { 0% { background: var(--verde-osc); } 100% { background: var(--bg); } }
+.kpi-row.neg.flash { animation: fln 0.3s; }
+@keyframes fln { 0% { background: var(--naranja); } 100% { background: var(--bg); } }
+.kpi-row.flashm { animation: flm 0.3s; }
+@keyframes flm { 0% { background: var(--rojo-osc); } 100% { background: var(--bg); } }
+.kpi-row .k-ic { font-size: 18px; width: 22px; text-align: center; flex-shrink: 0; }
+.kpi-row .k-txt { flex: 1; min-width: 0; }
+.kpi-row .k-lbl { font-size: 12.5px; font-weight: 600; line-height: 1.15; }
+.kpi-row .k-hint { font-size: 9.5px; color: var(--text-3); margin-top: 1px; }
+.kpi-row .k-step { display: flex; align-items: center; background: var(--surface-2); border-radius: 10px; overflow: hidden; border: 1px solid var(--border-2); flex-shrink: 0; }
+.kpi-row .k-step button { width: 40px; height: 40px; border: none; background: none; color: var(--text); font-size: 22px; font-weight: bold; cursor: pointer; line-height: 1; }
+.kpi-row .k-step button.minus:active { background: var(--naranja); color: white; }
+.kpi-row .k-step button.plus:active { background: var(--verde); color: white; }
+.kpi-row .k-val { min-width: 34px; text-align: center; font-size: 17px; font-weight: bold; }
+.kpi-row.neg .k-val { color: var(--naranja); }
+.kpi-row.pos .k-val { color: var(--verde); }
+
+.section-title { font-size: 11px; font-weight: bold; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin: 14px 2px 8px; }
+
+.note-input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.note-input-row input { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 11px 12px; font-size: 14px; font-family: inherit; }
+.note-toggle { display: flex; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.note-toggle button { background: var(--surface); border: none; color: var(--text-2); padding: 0 14px; font-size: 18px; cursor: pointer; }
+.note-toggle button.sel-bien { background: var(--verde-osc); color: white; }
+.note-toggle button.sel-mal { background: var(--naranja); color: white; }
+
+.log-list { margin-top: 10px; }
+.log-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface); border-radius: 10px; margin-bottom: 6px; border: 1px solid var(--border); }
+.log-item .lt { font-size: 11px; color: var(--text-3); min-width: 44px; }
+.log-item .ln { flex: 1; font-size: 13px; }
+.log-item .lp { font-size: 13px; font-weight: bold; }
+.log-item .ldel { color: var(--text-3); font-size: 18px; padding: 4px; cursor: pointer; }
+.empty { text-align: center; padding: 30px 20px; color: var(--text-3); font-size: 13px; line-height: 1.6; }
+
+.save-row { display: flex; gap: 10px; margin: 16px 0 10px; }
+.btn-save { flex: 1; background: var(--oro); color: var(--rojo-osc); border: none; border-radius: var(--radius); padding: 15px; font-size: 15px; font-weight: bold; cursor: pointer; font-family: inherit; }
+.btn-save:active { background: var(--oro-osc); }
+.btn-clear { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); border-radius: var(--radius); padding: 15px 18px; font-size: 14px; cursor: pointer; font-family: inherit; }
+
+.score-hero { background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; display: flex; justify-content: space-around; align-items: center; margin-bottom: 14px; text-align: center; }
+.score-hero .big { font-size: 38px; font-weight: bold; line-height: 1; }
+.score-hero .lbl { font-size: 11px; color: var(--text-2); margin-top: 5px; }
+.score-hero .stars { font-size: 21px; color: var(--ambar); letter-spacing: 2px; }
+.score-hero .divider { width: 1px; height: 48px; background: var(--border); }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin-bottom: 14px; }
+.kpi-c { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 13px; }
+.kpi-c .kl { font-size: 11px; color: var(--text-2); margin-bottom: 5px; }
+.kpi-c .kv { font-size: 24px; font-weight: bold; line-height: 1; }
+.kpi-c .ks { font-size: 10px; color: var(--text-3); margin-top: 4px; }
+.good { color: var(--verde); }
+.warn { color: var(--ambar); }
+.bad { color: var(--naranja); }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 14px; }
+.card .c-title { font-size: 12px; font-weight: bold; color: var(--text-2); margin-bottom: 12px; }
+.chart-wrap { position: relative; width: 100%; }
+
+.rate-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.rate-row .rl { flex: 1; }
+.rate-row .rl .rn { font-size: 13px; font-weight: 600; }
+.rate-row .rl .rw { font-size: 10px; color: var(--text-3); }
+.rate-stars { display: flex; gap: 4px; }
+.rate-stars button { width: 30px; height: 30px; border: none; background: var(--surface-2); border-radius: 8px; color: var(--text-3); font-size: 15px; cursor: pointer; }
+.rate-stars button.on { background: var(--ambar); color: white; }
+
+.eval-q { margin-bottom: 10px; }
+.eval-q label { display: block; font-size: 12px; color: var(--text-2); margin-bottom: 4px; }
+.eval-q input, .eval-q textarea { width: 100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 10px; font-size: 13px; font-family: inherit; resize: vertical; }
+
+.slider-row { margin-bottom: 12px; }
+.slider-row .sh { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+.slider-row .sv { font-weight: bold; color: var(--text); }
+.slider-row input[type=range] { width: 100%; accent-color: var(--rojo); }
+
+.head-flag { display: flex; align-items: center; gap: 10px; background: rgba(216,90,48,0.12); border: 1px solid rgba(216,90,48,0.4); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.head-flag .hf-txt { flex: 1; font-size: 12.5px; }
+.toggle-yn { display: flex; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-2); }
+.toggle-yn button { border: none; background: var(--surface-2); color: var(--text-2); padding: 8px 16px; font-size: 13px; font-weight: bold; cursor: pointer; }
+.toggle-yn button.yes-on { background: var(--naranja); color: white; }
+.toggle-yn button.no-on { background: var(--verde-osc); color: white; }
+
+.match-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; }
+.match-card .mc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.match-card .mc-rival { font-size: 15px; font-weight: bold; }
+.match-card .mc-date { font-size: 11px; color: var(--text-3); }
+.match-card .mc-stars { color: var(--ambar); font-size: 15px; }
+.match-card .mc-idx { font-size: 22px; font-weight: bold; }
+.match-card .mc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.match-card .mc-stat { text-align: center; }
+.match-card .mc-stat .v { font-size: 16px; font-weight: bold; }
+.match-card .mc-stat .l { font-size: 9px; color: var(--text-3); text-transform: uppercase; }
+.match-card .mc-del { font-size: 12px; color: var(--text-3); margin-top: 10px; text-align: right; cursor: pointer; }
+
+.export-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; font-family: monospace; font-size: 10px; color: var(--text-2); white-space: pre; overflow-x: auto; margin-bottom: 12px; max-height: 220px; overflow-y: auto; }
+.btn-export { width: 100%; background: var(--oro); color: var(--rojo-osc); border: none; border-radius: var(--radius); padding: 14px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
+.btn-export.sec { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.export-help { font-size: 12px; color: var(--text-3); line-height: 1.6; margin-top: 8px; }
+
+.tabbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: var(--surface); border-top: 1px solid var(--border-2); display: flex; padding-bottom: env(safe-area-inset-bottom, 0); }
+.tabbar button { flex: 1; background: none; border: none; color: var(--text-3); padding: 9px 2px 11px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; font-family: inherit; }
+.tabbar button .ti { font-size: 21px; }
+.tabbar button .tlbl { font-size: 9.5px; font-weight: bold; }
+.tabbar button.active { color: var(--oro); }
+
+.toast { position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--verde); color: white; padding: 12px 22px; border-radius: 30px; font-size: 14px; font-weight: bold; opacity: 0; transition: all 0.3s; z-index: 400; pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: flex-end; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--surface); width: 100%; border-radius: 22px 22px 0 0; padding: 18px 16px max(env(safe-area-inset-bottom),18px); max-height: 86vh; overflow-y: auto; }
+.modal h3 { font-size: 16px; margin-bottom: 14px; }
+.roster-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; }
+.roster-item.active { border-color: var(--oro); }
+.roster-item .ri-info { flex: 1; min-width: 0; }
+.roster-item .ri-name { font-size: 14px; font-weight: bold; }
+.roster-item .ri-pos { font-size: 11px; color: var(--text-3); }
+.roster-item .ri-act { background: none; border: none; color: var(--text-3); font-size: 17px; padding: 5px; cursor: pointer; }
+.add-form { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 14px; }
+.add-form .ff { display: flex; gap: 8px; margin-bottom: 8px; }
+.add-form input, .add-form select { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 11px; font-size: 13px; font-family: inherit; }
+.add-form input.num { width: 64px; }
+.add-form input.nm { flex: 1; }
+.add-form select { width: 100%; }
+.add-form .btn-add { width: 100%; background: var(--verde); color: white; border: none; border-radius: 10px; padding: 13px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: inherit; margin-top: 4px; }
+.modal-close { width: 100%; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); border-radius: 12px; padding: 13px; font-size: 14px; cursor: pointer; font-family: inherit; margin-top: 12px; }
+
+.install-banner { background: var(--surface-2); border: 1px solid var(--border-2); border-radius: var(--radius); padding: 12px 14px; margin: 12px; display: none; align-items: center; gap: 12px; font-size: 13px; }
+.install-banner.show { display: flex; }
+.install-banner button { margin-left: auto; background: var(--rojo); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: inherit; white-space: nowrap; }
+
+@font-face { font-family: 'tabler-icons'; src: url('https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.34.1/fonts/tabler-icons.woff2') format('woff2'); }
+.ti { font-family: 'tabler-icons'; font-style: normal; }
+.ti-plus::before { content: '\ea66'; }
+.ti-chart::before { content: '\ec48'; }
+.ti-clipboard::before { content: '\eb9d'; }
+.ti-history::before { content: '\eb6f'; }
+.ti-download::before { content: '\ea96'; }
 </style>
 </head>
 <body>
 
-<div class="loading-overlay" id="loading">
-  <div class="loading-spinner"></div>
-  <div style="font-size:13px;color:var(--text-muted)">Cargando...</div>
+<div class="topbar">
+  <button class="player-btn" onclick="openRoster()">
+    <div class="jersey" id="tb-jersey">32</div>
+    <div style="min-width:0;">
+      <div class="name" id="tb-name">Pedro</div>
+      <div class="pos" id="tb-pos">Ala (7)</div>
+    </div>
+    <span class="chev">▾</span>
+  </button>
+  <div class="season-pill">Belgrano AC · 2026</div>
+</div>
+<div class="stripe-bar"></div>
+
+<div class="install-banner" id="install-banner">
+  <span>📲 Instalá la app en tu pantalla de inicio</span>
+  <button onclick="installApp()">Instalar</button>
 </div>
 
-<div id="auth-screen" style="display:none">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div class="badge">
-        <span class="num">#32</span>
-        <span>RUGBY TRACKER</span>
-      </div>
-    </div>
-    <div class="auth-title" id="auth-title">Iniciar sesión</div>
-    <div class="auth-sub" id="auth-sub">Accedé a las estadísticas de Pedro</div>
-    <div class="auth-error" id="auth-error"></div>
-    <div class="auth-success" id="auth-success"></div>
-    <div class="auth-field" id="field-name" style="display:none">
-      <label>Nombre</label>
-      <input type="text" id="input-name" placeholder="Tu nombre">
-    </div>
-    <div class="auth-field">
-      <label>Email</label>
-      <input type="email" id="input-email" placeholder="tu@email.com">
-    </div>
-    <div class="auth-field" id="field-password">
-      <label>Contraseña</label>
-      <input type="password" id="input-password" placeholder="••••••••">
-    </div>
-    <button class="btn-auth" id="btn-auth-action">Entrar</button>
-    <div class="auth-forgot" id="auth-forgot-container">
-      <span id="btn-forgot">¿Olvidaste tu contraseña?</span>
-    </div>
-    <div class="auth-toggle" id="auth-toggle-container">
-      ¿No tenés cuenta? <span id="auth-toggle">Registrarse</span>
-    </div>
+<!-- MATCH BAR -->
+<div class="match-bar" id="match-bar">
+  <input type="text" id="m-rival" placeholder="Rival..." oninput="saveDraft()">
+  <input type="date" id="m-date" onchange="saveDraft()">
+  <select id="m-pos" onchange="updateMatchPos()"></select>
+  <div class="minute-box">
+    <button onclick="adjMin(-1)">−</button>
+    <div><span class="min-val" id="min-val">0</span><span class="min-label">min</span></div>
+    <button onclick="adjMin(1)">+</button>
   </div>
 </div>
 
-<div id="app">
-  <div class="app-header">
-    <div class="header-brand">
-      <div class="header-badge">#32</div>
-      <div>
-        <div class="header-title">Pedro · Rugby Tracker</div>
-        <div class="header-sub" id="header-user">—</div>
+<div class="content">
+
+<!-- TAB REGISTRAR -->
+<div class="section active" id="s-reg">
+  <div id="kpi-groups"></div>
+
+  <div style="margin-top:14px;">
+    <div class="section-title">Notas de observación</div>
+    <div class="note-input-row">
+      <input type="text" id="note-txt" placeholder="Ej: llegó primero al ruck...">
+      <div class="note-toggle">
+        <button id="nt-bien" class="sel-bien" onclick="setNoteType('bien')">✓</button>
+        <button id="nt-mal" onclick="setNoteType('mal')">✕</button>
       </div>
     </div>
-    <button class="btn-logout" id="btn-logout">Salir</button>
+    <button class="btn-clear" style="width:100%; padding:11px;" onclick="addNote()">Agregar nota</button>
   </div>
 
-  <div class="app-content">
-    <div class="panel active" id="panel-registrar">
-      <div class="match-form">
-        <div class="section-title">Datos del partido</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Rival</label>
-            <input type="text" id="input-rival" placeholder="Ej: CASI">
-          </div>
-          <div class="form-group">
-            <label>Fecha</label>
-            <input type="date" id="input-fecha">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Posición</label>
-            <select id="input-posicion">
-              <option value="Ala 6">Ala 6</option>
-              <option value="Ala 7">Ala 7</option>
-              <option value="2ª línea 4">2ª línea 4</option>
-              <option value="2ª línea 5">2ª línea 5</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Resultado</label>
-            <input type="text" id="input-resultado" placeholder="Ej: 21-14 G">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Minutos</label>
-            <input type="number" id="input-minutos" placeholder="80" min="1" max="120">
-          </div>
-          <div class="form-group">
-            <label>Nota (1-10)</label>
-            <input type="number" id="input-nota" placeholder="7" min="1" max="10">
-          </div>
-        </div>
-      </div>
-      <div class="section-title">Acciones durante el partido</div>
-      <div class="action-grid" id="action-grid"></div>
-      <div class="log-area">
-        <div class="log-header">
-          <span>Log de acciones</span>
-          <button class="btn-clear-log" id="btn-clear-log">Limpiar</button>
-        </div>
-        <div class="log-list" id="log-list">
-          <div class="empty-state" style="padding:20px">
-            <div class="empty-state-text">Tocá los botones para registrar acciones</div>
-          </div>
-        </div>
-      </div>
-      <button class="btn-save-match" id="btn-save-match">💾 Guardar partido</button>
-    </div>
+  <div class="section-title" style="margin-top:16px;">Registro (<span id="log-count">0</span>)</div>
+  <div class="log-list" id="log-list"></div>
 
-    <div class="panel" id="panel-kpis">
-      <div id="kpis-content">
-        <div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Cargando KPIs...</div></div>
-      </div>
-    </div>
-
-    <div class="panel" id="panel-temporada">
-      <div id="temporada-content">
-        <div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">Cargando temporada...</div></div>
-      </div>
-    </div>
-
-    <div class="panel" id="panel-exportar">
-      <div class="export-section">
-        <div class="section-title">Resumen de temporada</div>
-        <div class="season-summary">
-          <div class="summary-card"><div class="summary-val" id="exp-partidos">—</div><div class="summary-lbl">Partidos</div></div>
-          <div class="summary-card"><div class="summary-val" id="exp-tries">—</div><div class="summary-lbl">Tries</div></div>
-          <div class="summary-card"><div class="summary-val" id="exp-tackles">—</div><div class="summary-lbl">Tackles</div></div>
-          <div class="summary-card"><div class="summary-val" id="exp-efectividad">—</div><div class="summary-lbl">Efectividad</div></div>
-        </div>
-      </div>
-      <div class="export-section">
-        <div class="section-title">Exportar datos</div>
-        <div class="export-desc">Descargá los datos de la temporada en CSV para analizar en Google Sheets o Excel.</div>
-        <button class="btn-export" id="btn-export-csv">📥 Exportar CSV completo</button>
-        <button class="btn-export" id="btn-export-resumen">📋 Exportar resumen por partido</button>
-      </div>
-    </div>
+  <div class="save-row">
+    <button class="btn-save" onclick="showTab('eval')">Evaluar y guardar →</button>
+    <button class="btn-clear" onclick="clearCurrent()">Limpiar</button>
   </div>
+</div>
 
-  <div class="tab-bar">
-    <button class="tab-btn active" data-panel="registrar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      Registrar
-    </button>
-    <button class="tab-btn" data-panel="kpis">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      KPIs
-    </button>
-    <button class="tab-btn" data-panel="temporada">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Temporada
-    </button>
-    <button class="tab-btn" data-panel="exportar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Exportar
-    </button>
+<!-- TAB KPIS -->
+<div class="section" id="s-kpi"><div id="kpi-content"></div></div>
+
+<!-- TAB EVALUAR -->
+<div class="section" id="s-eval"><div id="eval-content"></div></div>
+
+<!-- TAB TEMPORADA -->
+<div class="section" id="s-hist"><div id="hist-content"></div></div>
+
+<!-- TAB EXPORTAR -->
+<div class="section" id="s-exp">
+  <div class="section-title">Datos de temporada (CSV para Google Sheets)</div>
+  <div class="export-box" id="csv-box">Sin partidos guardados todavía.</div>
+  <button class="btn-export" onclick="copyCSV()">📋 Copiar CSV</button>
+  <button class="btn-export sec" onclick="downloadCSV()">⬇️ Descargar archivo .csv</button>
+  <div class="export-help">
+    <b>Cómo subirlo a Google Sheets:</b><br>
+    1. Copiá el CSV o descargá el archivo.<br>
+    2. En Google Sheets: Archivo → Importar → Subir.<br>
+    3. Cada fila es un partido de un jugador con todos sus KPIs e índice.<br><br>
+    Incluye los partidos de <b>todos los jugadores</b> del plantel.
+  </div>
+</div>
+
+</div>
+
+<!-- TABBAR -->
+<div class="tabbar">
+  <button class="active" id="tb-reg" onclick="showTab('reg')"><span class="ti ti-plus"></span><span class="tlbl">Registrar</span></button>
+  <button id="tb-kpi" onclick="showTab('kpi')"><span class="ti ti-chart"></span><span class="tlbl">KPIs</span></button>
+  <button id="tb-eval" onclick="showTab('eval')"><span class="ti ti-clipboard"></span><span class="tlbl">Evaluar</span></button>
+  <button id="tb-hist" onclick="showTab('hist')"><span class="ti ti-history"></span><span class="tlbl">Temporada</span></button>
+  <button id="tb-exp" onclick="showTab('exp')"><span class="ti ti-download"></span><span class="tlbl">Export</span></button>
+</div>
+
+<!-- ROSTER MODAL -->
+<div class="modal-overlay" id="roster-modal">
+  <div class="modal">
+    <h3>👥 Plantel</h3>
+    <div id="roster-list"></div>
+    <div class="add-form">
+      <div style="font-size:12px;color:var(--text-2);margin-bottom:8px;">Agregar jugador</div>
+      <div class="ff">
+        <input class="num" type="text" id="new-num" placeholder="#" maxlength="2">
+        <input class="nm" type="text" id="new-name" placeholder="Nombre">
+      </div>
+      <select id="new-pos"></select>
+      <button class="btn-add" onclick="addPlayer()">+ Agregar al plantel</button>
+    </div>
+    <button class="modal-close" onclick="closeRoster()">Cerrar</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const STORAGE_KEY = 'rugby_tracker_v2';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCobz764xcgmZjTHO5M_7-bnrbvzbKp54Q",
-  authDomain: "pedro32-rugby.firebaseapp.com",
-  projectId: "pedro32-rugby",
-  storageBucket: "pedro32-rugby.firebasestorage.app",
-  messagingSenderId: "958071981045",
-  appId: "1:958071981045:web:dc3db2ab32d382ef1956bc"
+/* ---------- POSICIONES (15) ---------- */
+const POSITIONS = [
+  { n:1,  label:'Pilar izquierdo (1)',  prof:'front' },
+  { n:2,  label:'Hooker (2)',           prof:'hooker' },
+  { n:3,  label:'Pilar derecho (3)',    prof:'front' },
+  { n:4,  label:'Segunda línea (4)',    prof:'lock' },
+  { n:5,  label:'Segunda línea (5)',    prof:'lock' },
+  { n:6,  label:'Ala / flanker (6)',    prof:'flanker' },
+  { n:7,  label:'Ala / flanker (7)',    prof:'flanker' },
+  { n:8,  label:'Octavo (8)',           prof:'n8' },
+  { n:9,  label:'Medio scrum (9)',      prof:'half' },
+  { n:10, label:'Apertura (10)',        prof:'fly' },
+  { n:11, label:'Wing (11)',            prof:'wing' },
+  { n:12, label:'Centro (12)',          prof:'centre' },
+  { n:13, label:'Centro (13)',          prof:'centre' },
+  { n:14, label:'Wing (14)',            prof:'wing' },
+  { n:15, label:'Fullback (15)',        prof:'fullback' },
+];
+function posLabel(n){ const p = POSITIONS.find(x=>x.n===n); return p?p.label:'—'; }
+function posProf(n){ const p = POSITIONS.find(x=>x.n===n); return p?p.prof:'flanker'; }
+
+/* pesos por área: [Defensa, Ataque, Breakdown, Trabajo, Fijas/Aéreo, Disciplina] (suman 100) */
+const PROFILES = {
+  front:    [25,10,20,15,25,5],
+  hooker:   [20,10,20,15,30,5],
+  lock:     [25,15,25,15,15,5],
+  flanker:  [30,15,30,15,5,5],
+  n8:       [25,20,25,15,10,5],
+  half:     [20,25,15,20,10,10],
+  fly:      [20,25,10,20,15,10],
+  wing:     [30,25,10,15,15,5],
+  centre:   [30,25,10,15,15,5],
+  fullback: [30,20,10,15,20,5],
+};
+const AREAS = ['Defensa','Ataque','Breakdown','Trabajo sin pelota','Fijas / Aéreo','Disciplina'];
+
+/* ---------- KPIs ---------- */
+/* type: count | meter | flag ; neg: cuenta negativa ; pts: peso para el índice de impacto */
+const KPI_GROUPS = [
+  { id:'def', icon:'🛡️', title:'Defensa', items:[
+    { id:'tk_comp', label:'Tackle completado', icon:'🛡️', pts:1 },
+    { id:'tk_err',  label:'Tackle errado', icon:'❌', neg:true, pts:-2 },
+    { id:'tk_dom',  label:'Tackle dominante', icon:'💥', pts:2 },
+    { id:'tk_asi',  label:'Tackle asistido', icon:'🤝', pts:0.5 },
+    { id:'tk_pas',  label:'Tackle pasivo (rival avanza)', icon:'😬', neg:true, pts:-0.5 },
+    { id:'tk_perd', label:'Tackle que genera pérdida', icon:'🔁', pts:3 },
+    { id:'def_ubic',label:'Error de ubicación defensiva', icon:'📐', neg:true, pts:-1 },
+  ]},
+  { id:'atk', icon:'🏃', title:'Ataque', items:[
+    { id:'carry',     label:'Carry', icon:'🏃', pts:1 },
+    { id:'carry_pos', label:'Carry positivo (cruza ventaja)', icon:'➡️', pts:1.5 },
+    { id:'carry_dom', label:'Carry dominante', icon:'💪', pts:2 },
+    { id:'m_gan',     label:'Metros ganados', icon:'📏', type:'meter', step:5, pts:0.1 },
+    { id:'m_post',    label:'Metros postcontacto', icon:'📍', type:'meter', step:1, pts:0.3 },
+    { id:'def_venc',  label:'Defensor vencido', icon:'🌀', pts:1 },
+    { id:'quiebre',   label:'Quiebre de línea', icon:'⚡', pts:2 },
+    { id:'offload',   label:'Offload bueno', icon:'🤲', pts:1 },
+    { id:'perdida',   label:'Pérdida de pelota', icon:'🟠', neg:true, pts:-2 },
+    { id:'try_assist',label:'Try assist', icon:'🎯', pts:3 },
+    { id:'try',       label:'Try', icon:'🏉', pts:5 },
+  ]},
+  { id:'bd', icon:'🤼', title:'Breakdown / Rucks', items:[
+    { id:'ruck_of_lleg', label:'Llegada a ruck ofensivo', icon:'🏉', pts:0.3 },
+    { id:'ruck_of_gan',  label:'Ruck ofensivo ganado', icon:'✅', pts:1 },
+    { id:'limpieza',     label:'Limpieza efectiva', icon:'🧹', pts:1 },
+    { id:'lleg_inutil',  label:'Llegada inútil (pelota ya ganada)', icon:'🟡', neg:true, pts:-0.5 },
+    { id:'lleg_tarde',   label:'Llegada tarde', icon:'🐢', neg:true, pts:-1 },
+    { id:'ruck_def_atac',label:'Ruck defensivo atacado', icon:'⚔️', pts:1 },
+    { id:'turnover',     label:'Turnover ganado', icon:'🔄', pts:3 },
+    { id:'ruck_enlent',  label:'Ruck enlentecido', icon:'⏱️', pts:1 },
+    { id:'pen_bd',       label:'Penal en breakdown', icon:'🚩', neg:true, pts:-3 },
+  ]},
+  { id:'work', icon:'🔋', title:'Trabajo sin pelota', items:[
+    { id:'apoyo',      label:'Apoyo ofensivo', icon:'👥', pts:1 },
+    { id:'reubic',     label:'Reubicación', icon:'🔃', pts:0.5 },
+    { id:'cob_prof',   label:'Cobertura profunda / patada', icon:'🛰️', pts:1 },
+    { id:'pres_pat',   label:'Presión sobre pateador', icon:'🎽', pts:1 },
+    { id:'decoy',      label:'Decoy run', icon:'🎭', pts:0.5 },
+    { id:'comunic',    label:'Comunicación / organización', icon:'🗣️', pts:0.5 },
+    { id:'esf_error',  label:'Esfuerzo después del error', icon:'🔥', pts:1 },
+    { id:'work_tardio',label:'Work rate tardío (últimos min)', icon:'⏳', pts:0.5 },
+    { id:'work_neg',   label:'Falta de trabajo / mala ubicación', icon:'💤', neg:true, pts:-1 },
+  ]},
+  { id:'disc', icon:'⚖️', title:'Disciplina y precisión', items:[
+    { id:'pen',         label:'Penal concedido', icon:'🚩', neg:true, pts:-3 },
+    { id:'inf_ruck',    label:'Infracción en ruck', icon:'🚫', neg:true, pts:-2 },
+    { id:'offside',     label:'Offside', icon:'🚷', neg:true, pts:-2 },
+    { id:'tk_alto',     label:'Tackle alto', icon:'⛔', neg:true, pts:-3 },
+    { id:'entrada_cost',label:'Entrada de costado', icon:'↔️', neg:true, pts:-2 },
+    { id:'retencion',   label:'Retención de pelota', icon:'✋', neg:true, pts:-2 },
+    { id:'foul',        label:'Foul play / reacción', icon:'🟥', neg:true, pts:-3 },
+    { id:'err_nf',      label:'Error no forzado', icon:'😵', neg:true, pts:-1 },
+    { id:'knock',       label:'Knock-on', icon:'🤏', neg:true, pts:-2 },
+    { id:'pase_def',    label:'Pase defectuoso', icon:'🎽', neg:true, pts:-1 },
+  ]},
+  { id:'set', icon:'🎯', title:'Formaciones fijas / Juego aéreo', items:[
+    { id:'lo_salto',     label:'Lineout: salto propio (es opción)', icon:'⬆️', pts:0.3 },
+    { id:'lo_recep',     label:'Lineout: recepción limpia', icon:'🙌', pts:1 },
+    { id:'lo_def',       label:'Lineout defensivo: presión', icon:'🛡️', pts:1 },
+    { id:'scrum_estable',label:'Scrum estable', icon:'🟢', pts:1 },
+    { id:'scrum_pen',    label:'Scrum: penal / error', icon:'🔴', neg:true, pts:-2 },
+    { id:'aer_gan',      label:'Pelota alta ganada', icon:'🎈', pts:1.5 },
+    { id:'aer_perd',     label:'Pelota alta perdida', icon:'💨', neg:true, pts:-1 },
+  ]},
+  { id:'safe', icon:'🧠', title:'Seguridad (registrar siempre)', items:[
+    { id:'cabeza', label:'Golpe en cabeza / síntoma', icon:'🧠', neg:true, pts:0 },
+  ]},
+];
+const ALL_KPIS = KPI_GROUPS.flatMap(g => g.items);
+function kpiDef(id){ return ALL_KPIS.find(k=>k.id===id); }
+
+/* qué KPIs (por id) aportan a cada área para autosugerir el rating 1-5 */
+const AREA_KPIS = {
+  0: ['def'], 1: ['atk'], 2: ['bd'], 3: ['work'], 4: ['set'], 5: ['disc'],
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
-const auth = getAuth(firebaseApp);
-const db = getFirestore(firebaseApp);
+/* penales para índice de disciplina */
+const PENAL_IDS = ['pen','pen_bd','inf_ruck','offside','tk_alto','entrada_cost','retencion','foul','scrum_pen'];
 
-let currentUser = null;
-let allMatches = [];
-let currentLog = [];
-let charts = {};
+/* ---------- ESTADO ---------- */
+let store = { players: [], activeId: null };
+let active = null; // jugador activo
 
-const ACTIONS = [
-  { key: 'tackles_buenos',    label: 'Tackle bueno',      icon: '💪', type: 'positive' },
-  { key: 'tackles_fallados',  label: 'Tackle fallado',    icon: '❌', type: 'negative' },
-  { key: 'tackles_dominantes',label: 'Tackle dominante',  icon: '🔥', type: 'positive' },
-  { key: 'turnovers_gen',     label: 'Turnover gen.',     icon: '🏆', type: 'positive' },
-  { key: 'turnovers_ced',     label: 'Turnover ced.',     icon: '⚠️', type: 'negative' },
-  { key: 'carries',           label: 'Carry',             icon: '🏃', type: 'neutral' },
-  { key: 'metros_ganados',    label: 'Metros ganados',    icon: '📏', type: 'neutral' },
-  { key: 'rucks_ganados',     label: 'Ruck ganado',       icon: '✅', type: 'positive' },
-  { key: 'rucks_perdidos',    label: 'Ruck perdido',      icon: '🚫', type: 'negative' },
-  { key: 'lineouts_ganados',  label: 'Lineout gan.',      icon: '🎯', type: 'positive' },
-  { key: 'lineouts_perdidos', label: 'Lineout perd.',     icon: '😬', type: 'negative' },
-  { key: 'tries',             label: 'Try',               icon: '🏉', type: 'positive' },
-  { key: 'pases',             label: 'Pase',              icon: '↗️', type: 'neutral' },
-  { key: 'penales_cometidos', label: 'Penal cometido',    icon: '🟡', type: 'negative' },
-  { key: 'trabajo_sin_balon', label: 'Trab. sin balón',   icon: '🏃‍♂️', type: 'neutral' },
-  { key: 'impacto_scrum',     label: 'Impacto scrum',     icon: '⚡', type: 'neutral' },
-];
-
-function newActionCounts() {
-  const c = {};
-  ACTIONS.forEach(a => c[a.key] = 0);
-  return c;
-}
-let actionCounts = newActionCounts();
-
-let authMode = 'login';
-
-function setAuthMode(mode) {
-  authMode = mode;
-  const title = document.getElementById('auth-title');
-  const sub = document.getElementById('auth-sub');
-  const btnAction = document.getElementById('btn-auth-action');
-  const toggleContainer = document.getElementById('auth-toggle-container');
-  const toggleSpan = document.getElementById('auth-toggle');
-  const fieldName = document.getElementById('field-name');
-  const fieldPassword = document.getElementById('field-password');
-  const forgotContainer = document.getElementById('auth-forgot-container');
-  clearAuthMessages();
-  if (mode === 'login') {
-    title.textContent = 'Iniciar sesión';
-    sub.textContent = 'Accedé a las estadísticas de Pedro';
-    btnAction.textContent = 'Entrar';
-    fieldName.style.display = 'none';
-    fieldPassword.style.display = 'block';
-    toggleContainer.style.display = 'block';
-    toggleSpan.textContent = 'Registrarse';
-    forgotContainer.style.display = 'block';
-  } else if (mode === 'register') {
-    title.textContent = 'Crear cuenta';
-    sub.textContent = 'Registrate para acceder al tracker';
-    btnAction.textContent = 'Crear cuenta';
-    fieldName.style.display = 'block';
-    fieldPassword.style.display = 'block';
-    toggleContainer.style.display = 'block';
-    toggleSpan.textContent = 'Ya tengo cuenta';
-    forgotContainer.style.display = 'none';
-  } else if (mode === 'forgot') {
-    title.textContent = 'Recuperar contraseña';
-    sub.textContent = 'Te mandamos un link al email';
-    btnAction.textContent = 'Enviar link';
-    fieldName.style.display = 'none';
-    fieldPassword.style.display = 'none';
-    toggleContainer.style.display = 'block';
-    toggleSpan.textContent = 'Volver al login';
-    forgotContainer.style.display = 'none';
-  }
-}
-
-function showAuthError(msg) {
-  const el = document.getElementById('auth-error');
-  el.textContent = msg;
-  el.style.display = 'block';
-  document.getElementById('auth-success').style.display = 'none';
-}
-function showAuthSuccess(msg) {
-  const el = document.getElementById('auth-success');
-  el.textContent = msg;
-  el.style.display = 'block';
-  document.getElementById('auth-error').style.display = 'none';
-}
-function clearAuthMessages() {
-  document.getElementById('auth-error').style.display = 'none';
-  document.getElementById('auth-success').style.display = 'none';
-}
-
-document.getElementById('auth-toggle').addEventListener('click', () => {
-  if (authMode === 'login') setAuthMode('register');
-  else setAuthMode('login');
-});
-
-document.getElementById('btn-forgot').addEventListener('click', () => setAuthMode('forgot'));
-
-document.getElementById('btn-auth-action').addEventListener('click', async () => {
-  clearAuthMessages();
-  const email = document.getElementById('input-email').value.trim();
-  const password = document.getElementById('input-password').value;
-  const name = document.getElementById('input-name').value.trim();
-  if (authMode === 'forgot') {
-    if (!email) return showAuthError('Ingresá tu email.');
-    try {
-      await sendPasswordResetEmail(auth, email);
-      showAuthSuccess('✅ Link enviado. Revisá tu correo (también spam).');
-    } catch(e) { showAuthError(firebaseErrorMsg(e.code)); }
-    return;
-  }
-  if (!email || !password) return showAuthError('Completá email y contraseña.');
-  try {
-    if (authMode === 'register') {
-      if (!name) return showAuthError('Ingresá tu nombre.');
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(cred.user, { displayName: name });
-    } else {
-      await signInWithEmailAndPassword(auth, email, password);
-    }
-  } catch(e) { showAuthError(firebaseErrorMsg(e.code)); }
-});
-
-function firebaseErrorMsg(code) {
-  const msgs = {
-    'auth/invalid-email': 'Email inválido.',
-    'auth/user-not-found': 'No existe cuenta con ese email.',
-    'auth/wrong-password': 'Contraseña incorrecta.',
-    'auth/email-already-in-use': 'Ya existe una cuenta con ese email.',
-    'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
-    'auth/invalid-credential': 'Email o contraseña incorrectos.',
-    'auth/too-many-requests': 'Demasiados intentos. Esperá un momento.',
+function freshCounts(){ const c = {}; ALL_KPIS.forEach(k => c[k.id] = 0); return c; }
+function newPlayer(name, num, pos){
+  return {
+    id: 'p_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+    name, num, pos,
+    draft: { counts: freshCounts(), log: [], notes: [], minute: 0, rival:'', date:'', noteType:'bien' },
+    matches: []
   };
-  return msgs[code] || 'Error. Intentá de nuevo.';
 }
 
-onAuthStateChanged(auth, async (user) => {
-  document.getElementById('loading').style.display = 'none';
-  if (user) {
-    currentUser = user;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
-    document.getElementById('header-user').textContent = user.displayName || user.email;
-    await loadMatches();
-    buildActionGrid();
-    setTodayDate();
-    renderKPIs();
-    renderTemporada();
-    renderExport();
-  } else {
-    currentUser = null;
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app').classList.remove('visible');
-    setAuthMode('login');
-  }
-});
-
-document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
-
-async function loadMatches() {
+function save(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch(e){} }
+function load(){
   try {
-    const q = query(collection(db, 'rugby_matches'), orderBy('timestamp', 'desc'));
-    const snap = await getDocs(q);
-    allMatches = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  } catch(e) { allMatches = []; }
-}
-
-async function saveMatch(matchData) {
-  const ref = await addDoc(collection(db, 'rugby_matches'), {
-    ...matchData,
-    userId: currentUser.uid,
-    userEmail: currentUser.email,
-    userName: currentUser.displayName || currentUser.email,
-    timestamp: serverTimestamp(),
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) store = JSON.parse(raw);
+  } catch(e){}
+  if (!store.players || store.players.length === 0){
+    const p = newPlayer('Pedro', '32', 7);
+    store = { players:[p], activeId: p.id };
+  }
+  // sanity: asegurar counts completos
+  store.players.forEach(p => {
+    const fc = freshCounts();
+    p.draft = p.draft || { counts: fc, log:[], notes:[], minute:0, rival:'', date:'', noteType:'bien' };
+    p.draft.counts = Object.assign(fc, p.draft.counts || {});
+    p.draft.log = p.draft.log || []; p.draft.notes = p.draft.notes || [];
+    p.matches = p.matches || [];
   });
-  return ref.id;
+  if (!store.activeId || !store.players.find(p=>p.id===store.activeId)) store.activeId = store.players[0].id;
+  active = store.players.find(p => p.id === store.activeId);
+}
+function setActive(id){ store.activeId = id; active = store.players.find(p=>p.id===id); save(); refreshAll(); }
+
+/* ---------- TOP BAR ---------- */
+function renderTopbar(){
+  document.getElementById('tb-jersey').textContent = active.num || '–';
+  document.getElementById('tb-name').textContent = active.name || 'Jugador';
+  document.getElementById('tb-pos').textContent = posLabel(active.pos);
 }
 
-async function deleteMatch(id) {
-  await deleteDoc(doc(db, 'rugby_matches', id));
+/* ---------- MATCH BAR ---------- */
+function fillPosSelect(sel, val){
+  sel.innerHTML = POSITIONS.map(p => `<option value="${p.n}" ${p.n===val?'selected':''}>${p.label}</option>`).join('');
+}
+function renderMatchBar(){
+  fillPosSelect(document.getElementById('m-pos'), active.draft.matchPos || active.pos);
+  document.getElementById('m-rival').value = active.draft.rival || '';
+  document.getElementById('m-date').value = active.draft.date || new Date().toISOString().slice(0,10);
+  document.getElementById('min-val').textContent = active.draft.minute || 0;
+}
+function updateMatchPos(){ active.draft.matchPos = parseInt(document.getElementById('m-pos').value,10); save(); }
+function saveDraft(){
+  active.draft.rival = document.getElementById('m-rival').value;
+  active.draft.date = document.getElementById('m-date').value;
+  save();
+}
+function adjMin(d){
+  active.draft.minute = Math.max(0, Math.min(120, (active.draft.minute||0) + d));
+  document.getElementById('min-val').textContent = active.draft.minute;
+  save();
 }
 
-function buildActionGrid() {
-  const grid = document.getElementById('action-grid');
-  grid.innerHTML = '';
-  ACTIONS.forEach(action => {
-    const btn = document.createElement('button');
-    btn.className = `action-btn ${action.type}`;
-    btn.innerHTML = `
-      <span class="action-icon">${action.icon}</span>
-      <span class="action-label">${action.label}</span>
-      <span class="action-count" id="count-${action.key}">0</span>
-    `;
-    btn.addEventListener('click', () => logAction(action));
-    grid.appendChild(btn);
-  });
+/* ---------- REGISTRAR: render KPIs ---------- */
+let collapsed = {};
+function renderGroups(){
+  const wrap = document.getElementById('kpi-groups');
+  const c = active.draft.counts;
+  wrap.innerHTML = KPI_GROUPS.map(g => {
+    const sum = g.items.reduce((s,k)=> s + (c[k.id]||0), 0);
+    const isC = collapsed[g.id];
+    const rows = g.items.map(k => {
+      const v = c[k.id]||0;
+      const cls = k.neg ? 'neg' : (k.type==='meter' ? '' : 'pos');
+      const stepTxt = k.type==='meter' ? `±${k.step}` : '';
+      return `<div class="kpi-row ${cls}" id="row-${k.id}">
+        <span class="k-ic">${k.icon}</span>
+        <div class="k-txt"><div class="k-lbl">${k.label}</div>${stepTxt?`<div class="k-hint">de a ${k.step} m</div>`:''}</div>
+        <div class="k-step">
+          <button class="minus" onclick="dec('${k.id}')">−</button>
+          <span class="k-val" id="val-${k.id}">${v}</span>
+          <button class="plus" onclick="inc('${k.id}')">+</button>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="group ${isC?'collapsed':''}" id="grp-${g.id}">
+      <div class="group-head" onclick="toggleGroup('${g.id}')">
+        <span>${g.icon}</span>
+        <span class="g-title">${g.title}</span>
+        <span class="g-sum" id="gsum-${g.id}">${sum}</span>
+        <span class="g-chev">▾</span>
+      </div>
+      <div class="group-body">${rows}</div>
+    </div>`;
+  }).join('');
+}
+function toggleGroup(id){ collapsed[id] = !collapsed[id]; document.getElementById('grp-'+id).classList.toggle('collapsed'); }
+function groupSum(gid){
+  const g = KPI_GROUPS.find(x=>x.id===gid);
+  const c = active.draft.counts;
+  const s = g.items.reduce((a,k)=>a+(c[k.id]||0),0);
+  const el = document.getElementById('gsum-'+gid); if(el) el.textContent = s;
+}
+function groupOf(id){ return KPI_GROUPS.find(g => g.items.some(k=>k.id===id)).id; }
+
+function inc(id){
+  const k = kpiDef(id);
+  const c = active.draft.counts;
+  const step = k.type==='meter' ? k.step : 1;
+  c[id] = (c[id]||0) + step;
+  document.getElementById('val-'+id).textContent = c[id];
+  flashRow(id, k);
+  active.draft.log.push({ id, label:k.label, min: active.draft.minute||0, pts:k.pts, neg:!!k.neg, meter:k.type==='meter'?step:0 });
+  if (navigator.vibrate) navigator.vibrate(12);
+  groupSum(groupOf(id)); renderLog(); save();
+}
+function dec(id){
+  const k = kpiDef(id);
+  const c = active.draft.counts;
+  const step = k.type==='meter' ? k.step : 1;
+  if ((c[id]||0) <= 0) return;
+  c[id] = Math.max(0, (c[id]||0) - step);
+  document.getElementById('val-'+id).textContent = c[id];
+  // sacar la última entrada de log de ese id
+  for (let i = active.draft.log.length-1; i>=0; i--){ if (active.draft.log[i].id===id){ active.draft.log.splice(i,1); break; } }
+  if (navigator.vibrate) navigator.vibrate(8);
+  groupSum(groupOf(id)); renderLog(); save();
+}
+function flashRow(id, k){
+  const el = document.getElementById('row-'+id); if(!el) return;
+  const anim = k.type==='meter' ? 'flashm' : 'flash';
+  el.classList.remove(anim); void el.offsetWidth; el.classList.add(anim);
 }
 
-function logAction(action) {
-  actionCounts[action.key]++;
-  document.getElementById(`count-${action.key}`).textContent = actionCounts[action.key];
-  const entry = { key: action.key, label: action.label, icon: action.icon, time: new Date() };
-  currentLog.unshift(entry);
-  renderLog();
-  if (navigator.vibrate) navigator.vibrate(30);
+function setNoteType(t){
+  active.draft.noteType = t;
+  document.getElementById('nt-bien').className = t==='bien'?'sel-bien':'';
+  document.getElementById('nt-mal').className = t==='mal'?'sel-mal':'';
+  save();
 }
-
-function renderLog() {
-  const list = document.getElementById('log-list');
-  if (currentLog.length === 0) {
-    list.innerHTML = '<div class="empty-state" style="padding:20px"><div class="empty-state-text">Tocá los botones para registrar acciones</div></div>';
+function addNote(){
+  const txt = document.getElementById('note-txt').value.trim();
+  if(!txt) return;
+  active.draft.notes.push({ txt, type: active.draft.noteType||'bien' });
+  document.getElementById('note-txt').value = '';
+  renderLog(); save(); toast('Nota agregada');
+}
+function renderLog(){
+  const el = document.getElementById('log-list');
+  const log = active.draft.log, notes = active.draft.notes;
+  document.getElementById('log-count').textContent = log.length;
+  if (log.length===0 && notes.length===0){
+    el.innerHTML = '<div class="empty">Todavía no registraste nada.<br>Apretá los botones mientras mirás el video.</div>';
     return;
   }
-  list.innerHTML = currentLog.slice(0, 30).map((e, i) => `
-    <div class="log-item">
-      <div class="log-item-left">
-        <span>${e.icon}</span>
-        <span>${e.label}</span>
+  let html = '';
+  log.slice().reverse().forEach((it, ri) => {
+    const i = log.length-1-ri;
+    const col = it.neg ? 'var(--naranja)' : (it.meter ? 'var(--azul)' : 'var(--verde)');
+    const txt = it.meter ? '+' + it.meter + 'm' : '';
+    html += `<div class="log-item">
+      <span class="lt">min ${it.min}</span>
+      <span class="ln">${it.label}</span>
+      <span class="lp" style="color:${col}">${txt}</span>
+      <span class="ldel" onclick="delLog(${i})">×</span>
+    </div>`;
+  });
+  notes.forEach((n,i) => {
+    html += `<div class="log-item" style="background:var(--surface-2);">
+      <span class="lt">${n.type==='bien'?'✅':'⚠️'}</span>
+      <span class="ln" style="font-size:12.5px;color:var(--text-2);">${n.txt}</span>
+      <span class="ldel" onclick="delNote(${i})">×</span>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+function delLog(i){
+  const it = active.draft.log[i]; if(!it) return;
+  const k = kpiDef(it.id);
+  const step = k && k.type==='meter' ? k.step : 1;
+  active.draft.counts[it.id] = Math.max(0, (active.draft.counts[it.id]||0) - step);
+  const v = document.getElementById('val-'+it.id); if(v) v.textContent = active.draft.counts[it.id];
+  groupSum(groupOf(it.id));
+  active.draft.log.splice(i,1); renderLog(); save();
+}
+function delNote(i){ active.draft.notes.splice(i,1); renderLog(); save(); }
+
+function clearCurrent(silent){
+  active.draft = { counts: freshCounts(), log:[], notes:[], minute:0,
+    rival: active.draft.rival, date: active.draft.date,
+    matchPos: active.draft.matchPos || active.pos, noteType:'bien' };
+  save();
+  renderGroups(); renderMatchBar(); renderLog();
+  if(!silent) toast('Partido actual borrado');
+}
+
+/* ---------- CÁLCULOS ---------- */
+function calc(c){
+  const g = id => c[id]||0;
+  const tk_comp=g('tk_comp'), tk_err=g('tk_err'), tk_dom=g('tk_dom');
+  const tk_int = tk_comp + tk_err;
+  const efectividad = tk_int>0 ? Math.round(tk_comp/tk_int*100) : 0;
+  const tasa_dom = tk_comp>0 ? Math.round(tk_dom/tk_comp*100) : 0;
+  const carries=g('carry'), carry_pos=g('carry_pos'), perdidas=g('perdida');
+  const exito_vent = carries>0 ? Math.round(carry_pos/carries*100) : 0;
+  const conservacion = carries>0 ? Math.round((1 - perdidas/carries)*100) : 100;
+  const ruck_lleg=g('ruck_of_lleg'), ruck_gan=g('ruck_of_gan');
+  const ruck_efect = ruck_lleg>0 ? Math.round(ruck_gan/ruck_lleg*100) : 0;
+  const lo_salto=g('lo_salto'), lo_recep=g('lo_recep');
+  const lo_efect = lo_salto>0 ? Math.round(lo_recep/lo_salto*100) : 0;
+  const penales = PENAL_IDS.reduce((s,id)=>s+g(id),0);
+  const rucks = ruck_lleg + g('limpieza') + g('ruck_def_atac');
+  const apoyos = g('apoyo');
+  const acc_totales = tk_comp + tk_err + carries + rucks + apoyos;
+  // acciones útiles = positivas (suma de KPIs no-neg, sin metros)
+  let utiles = 0;
+  ALL_KPIS.forEach(k => { if(!k.neg && k.type!=='meter') utiles += g(k.id); });
+  const impacto = Math.round(ALL_KPIS.reduce((s,k)=> s + g(k.id)*(k.pts||0), 0));
+  return {
+    tackles:tk_comp, tk_err, tk_int, efectividad, tk_dom, tasa_dom,
+    carries, carry_pos, exito_vent, perdidas, conservacion,
+    metros:g('m_gan'), m_post:g('m_post'), quiebres:g('quiebre'), def_venc:g('def_venc'),
+    turnovers:g('turnover'), ruck_lleg, ruck_gan, ruck_efect, rucks,
+    lo_salto, lo_recep, lo_efect, aer_gan:g('aer_gan'),
+    penales, knock:g('knock'), apoyos, utiles, acc_totales, impacto,
+    tries:g('try'), try_assist:g('try_assist'), cabeza:g('cabeza')
+  };
+}
+function cls(v,gd,wn){ return v>=gd?'good':v>=wn?'warn':'bad'; }
+
+/* autosugerencia rating 1-5 por área a partir de los KPIs */
+function suggestRatings(c){
+  const k = calc(c);
+  const r = [3,3,3,3,3,3];
+  // Defensa
+  if (k.tk_int>=3){ r[0] = k.efectividad>=85 ? (k.tk_dom>=2 && k.tk_err<=1?5:4) : k.efectividad>=70?3:2; }
+  if (c['def_ubic']>0) r[0] = Math.max(1, r[0]-1);
+  // Ataque
+  if (k.carries>=3){ r[1] = k.exito_vent>=60?5 : k.exito_vent>=45?4 : k.exito_vent>=30?3:2; }
+  if (k.tries>0 || k.quiebres>=1) r[1] = Math.min(5, r[1]+1);
+  // Breakdown
+  if (k.ruck_lleg>=3){ r[2] = k.ruck_efect>=85?5 : k.ruck_efect>=70?4 : k.ruck_efect>=50?3:2; }
+  if (k.turnovers>=1) r[2] = Math.min(5, r[2]+1);
+  // Trabajo
+  r[3] = k.utiles>=20?5 : k.utiles>=12?4 : k.utiles>=6?3:2;
+  // Fijas/Aéreo
+  const setTouch = k.lo_salto + k.aer_gan + c['scrum_estable'] + c['lo_def'];
+  if (setTouch>=2){ r[4] = (k.lo_efect>=80 || k.aer_gan>=2)?4:3; if(c['scrum_pen']>0||c['aer_perd']>0) r[4]=Math.max(1,r[4]-1); }
+  // Disciplina
+  r[5] = k.penales===0?5 : k.penales===1?4 : k.penales===2?3:2;
+  return r.map(x => Math.max(1, Math.min(5, Math.round(x))));
+}
+function weightedIndex(ratings, pos){
+  const w = PROFILES[posProf(pos)];
+  let tot = 0;
+  for (let i=0;i<6;i++) tot += ratings[i] * (w[i]/100);
+  return Math.round(tot*100)/100;
+}
+function starsFromIndex(idx){ return Math.max(1, Math.min(5, Math.round(idx))); }
+
+/* ---------- TAB KPIS ---------- */
+function renderKPIs(){
+  const c = active.draft.counts;
+  const k = calc(c);
+  const idxRatings = active.draft.ratings || suggestRatings(c);
+  const idx = weightedIndex(idxRatings, active.draft.matchPos || active.pos);
+  const st = starsFromIndex(idx);
+  const starStr = '★'.repeat(st) + '☆'.repeat(5-st);
+  const impColor = k.impacto>=20?'var(--verde)':k.impacto>=8?'var(--ambar)':'var(--naranja)';
+  const bien = active.draft.notes.filter(n=>n.type==='bien');
+  const mal = active.draft.notes.filter(n=>n.type==='mal');
+  let html = `
+    <div class="score-hero">
+      <div><div class="big" style="color:${impColor}">${k.impacto}</div><div class="lbl">Impacto</div></div>
+      <div class="divider"></div>
+      <div><div class="stars">${starStr}</div><div class="lbl">Índice ${idx.toFixed(2)}</div></div>
+      <div class="divider"></div>
+      <div><div class="big ${cls(k.acc_totales,40,25)}">${k.acc_totales}</div><div class="lbl">Acc. totales</div></div>
+    </div>`;
+  if (k.cabeza>0){
+    html += `<div class="head-flag"><span style="font-size:20px;">🧠</span><div class="hf-txt"><b>${k.cabeza} golpe(s) en la cabeza / síntoma registrado.</b> Priorizar el bienestar del jugador antes que la estadística.</div></div>`;
+  }
+  html += `<div class="kpi-grid">
+      <div class="kpi-c"><div class="kl">Efectividad tackle</div><div class="kv ${cls(k.efectividad,85,70)}">${k.efectividad}%</div><div class="ks">${k.tackles}/${k.tk_int} · obj ≥85%</div></div>
+      <div class="kpi-c"><div class="kl">Tackles dominantes</div><div class="kv ${k.tk_dom>=2?'good':'warn'}">${k.tk_dom}</div><div class="ks">${k.tasa_dom}% de completados</div></div>
+      <div class="kpi-c"><div class="kl">Éxito línea ventaja</div><div class="kv ${cls(k.exito_vent,60,45)}">${k.exito_vent}%</div><div class="ks">${k.carry_pos}/${k.carries} carries</div></div>
+      <div class="kpi-c"><div class="kl">Conservación pelota</div><div class="kv ${cls(k.conservacion,90,75)}">${k.conservacion}%</div><div class="ks">${k.perdidas} pérdidas</div></div>
+      <div class="kpi-c"><div class="kl">Rucks ofens. efect.</div><div class="kv ${cls(k.ruck_efect,85,70)}">${k.ruck_efect}%</div><div class="ks">${k.ruck_gan}/${k.ruck_lleg} llegadas</div></div>
+      <div class="kpi-c"><div class="kl">Turnovers</div><div class="kv ${k.turnovers>=2?'good':'warn'}">${k.turnovers}</div><div class="ks">+3 pts c/u</div></div>
+      <div class="kpi-c"><div class="kl">Metros (post-cont.)</div><div class="kv">${k.metros}<span style="font-size:13px;color:var(--text-3)"> (${k.m_post})</span></div><div class="ks">ganados / postcontacto</div></div>
+      <div class="kpi-c"><div class="kl">Lineout efect.</div><div class="kv ${k.lo_salto?cls(k.lo_efect,80,60):''}">${k.lo_salto?k.lo_efect+'%':'—'}</div><div class="ks">${k.lo_recep}/${k.lo_salto} saltos</div></div>
+      <div class="kpi-c"><div class="kl">Penales</div><div class="kv ${k.penales<=1?'good':k.penales<=2?'warn':'bad'}">${k.penales}</div><div class="ks">objetivo 0–1</div></div>
+      <div class="kpi-c"><div class="kl">Acc. útiles / min</div><div class="kv">${active.draft.minute?(k.utiles/active.draft.minute).toFixed(2):'—'}</div><div class="ks">${k.utiles} útiles · ${active.draft.minute||0} min</div></div>
+    </div>
+    <div class="card">
+      <div class="c-title">📝 Notas de observación</div>
+      <div style="font-size:12px;color:var(--verde);font-weight:bold;margin-bottom:6px;">✅ Hizo bien (${bien.length})</div>
+      ${bien.length?bien.map(n=>`<div style="font-size:13px;padding:3px 0;">✓ ${n.txt}</div>`).join(''):'<div style="font-size:12px;color:var(--text-3);">Sin notas</div>'}
+      <div style="font-size:12px;color:var(--naranja);font-weight:bold;margin:10px 0 6px;">⚠️ A corregir (${mal.length})</div>
+      ${mal.length?mal.map(n=>`<div style="font-size:13px;padding:3px 0;">→ ${n.txt}</div>`).join(''):'<div style="font-size:12px;color:var(--text-3);">Sin notas</div>'}
+    </div>`;
+  document.getElementById('kpi-content').innerHTML = html;
+}
+
+/* ---------- TAB EVALUAR ---------- */
+function renderEval(){
+  const c = active.draft.counts;
+  if (!active.draft.ratings) active.draft.ratings = suggestRatings(c);
+  const pos = active.draft.matchPos || active.pos;
+  const w = PROFILES[posProf(pos)];
+  const ev = active.draft.eval = active.draft.eval || {};
+  const rpe = active.draft.rpe = active.draft.rpe || { esfuerzo:6, fatiga:5, muscular:3, sueno:7, cabeza:'no', cabezaNota:'' };
+  const idx = weightedIndex(active.draft.ratings, pos);
+
+  const rateRows = AREAS.map((a,i) => `
+    <div class="rate-row">
+      <div class="rl"><div class="rn">${a}</div><div class="rw">peso ${w[i]}%</div></div>
+      <div class="rate-stars" id="rs-${i}">
+        ${[1,2,3,4,5].map(n=>`<button class="${active.draft.ratings[i]>=n?'on':''}" onclick="setRating(${i},${n})">★</button>`).join('')}
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="log-item-time">${e.time.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})}</span>
-        <button class="log-item-undo" data-index="${i}" title="Deshacer">↩</button>
+    </div>`).join('');
+
+  const q = [
+    ['mejor','¿Cuál fue su mejor acción?'],
+    ['impacto','¿Qué acción tuvo mayor impacto en el equipo?'],
+    ['error','¿Qué error se repitió?'],
+    ['involucrado','¿Se mantuvo involucrado sin pelota?'],
+    ['decisiones','¿Tomó buenas decisiones bajo presión?'],
+    ['fisico','¿Cómo terminó físicamente el partido?'],
+    ['objetivo','Objetivo concreto para el próximo partido'],
+  ];
+  const qHtml = q.map(([id,lbl]) => `
+    <div class="eval-q"><label>${lbl}</label>
+    <textarea rows="2" id="ev-${id}" oninput="setEval('${id}', this.value)">${ev[id]||''}</textarea></div>`).join('');
+
+  document.getElementById('eval-content').innerHTML = `
+    <div class="card">
+      <div class="c-title">⭐ Índice del partido (1–5 por área, ponderado por puesto)</div>
+      ${rateRows}
+      <div style="text-align:center;margin-top:10px;padding-top:12px;border-top:1px solid var(--border);">
+        <div style="font-size:34px;font-weight:bold;color:${idx>=4?'var(--verde)':idx>=3?'var(--ambar)':'var(--naranja)'}" id="idx-val">${idx.toFixed(2)}</div>
+        <div style="font-size:11px;color:var(--text-2);">Índice general / 5 · ${posLabel(pos)}</div>
       </div>
     </div>
-  `).join('');
-  list.querySelectorAll('.log-item-undo').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const idx = parseInt(e.currentTarget.dataset.index);
-      const entry = currentLog[idx];
-      if (actionCounts[entry.key] > 0) actionCounts[entry.key]--;
-      const countEl = document.getElementById(`count-${entry.key}`);
-      if (countEl) countEl.textContent = actionCounts[entry.key];
-      currentLog.splice(idx, 1);
-      renderLog();
-    });
-  });
+
+    <div class="card">
+      <div class="c-title">🩺 Esfuerzo y bienestar (RPE)</div>
+      <div class="slider-row"><div class="sh"><span>Esfuerzo percibido (RPE)</span><span class="sv" id="sv-esfuerzo">${rpe.esfuerzo}/10</span></div><input type="range" min="1" max="10" value="${rpe.esfuerzo}" oninput="setRpe('esfuerzo',this.value)"></div>
+      <div class="slider-row"><div class="sh"><span>Fatiga</span><span class="sv" id="sv-fatiga">${rpe.fatiga}/10</span></div><input type="range" min="1" max="10" value="${rpe.fatiga}" oninput="setRpe('fatiga',this.value)"></div>
+      <div class="slider-row"><div class="sh"><span>Molestias musculares</span><span class="sv" id="sv-muscular">${rpe.muscular}/10</span></div><input type="range" min="1" max="10" value="${rpe.muscular}" oninput="setRpe('muscular',this.value)"></div>
+      <div class="slider-row"><div class="sh"><span>Calidad de sueño</span><span class="sv" id="sv-sueno">${rpe.sueno}/10</span></div><input type="range" min="1" max="10" value="${rpe.sueno}" oninput="setRpe('sueno',this.value)"></div>
+      <div class="head-flag" style="margin-top:6px;">
+        <span style="font-size:20px;">🧠</span>
+        <div class="hf-txt">¿Golpe en la cabeza o síntomas?</div>
+        <div class="toggle-yn">
+          <button id="hf-yes" class="${rpe.cabeza==='si'?'yes-on':''}" onclick="setRpe('cabeza','si')">Sí</button>
+          <button id="hf-no" class="${rpe.cabeza!=='si'?'no-on':''}" onclick="setRpe('cabeza','no')">No</button>
+        </div>
+      </div>
+      <div class="eval-q" id="cabeza-nota" style="${rpe.cabeza==='si'?'':'display:none;'}"><label>Detalle del golpe / síntoma</label><textarea rows="2" id="ev-cabnota" oninput="setRpe('cabezaNota',this.value)">${rpe.cabezaNota||''}</textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="c-title">🗒️ Evaluación del entrenador</div>
+      ${qHtml}
+    </div>
+
+    <div class="save-row">
+      <button class="btn-save" onclick="saveMatch()">💾 Guardar partido</button>
+      <button class="btn-clear" onclick="showTab('reg')">← Volver</button>
+    </div>`;
+}
+function setRating(i,n){
+  active.draft.ratings = active.draft.ratings || suggestRatings(active.draft.counts);
+  active.draft.ratings[i] = n;
+  const cont = document.getElementById('rs-'+i);
+  [...cont.children].forEach((b,bi)=> b.className = (bi+1)<=n?'on':'');
+  const idx = weightedIndex(active.draft.ratings, active.draft.matchPos||active.pos);
+  const iv = document.getElementById('idx-val');
+  if(iv){ iv.textContent = idx.toFixed(2); iv.style.color = idx>=4?'var(--verde)':idx>=3?'var(--ambar)':'var(--naranja)'; }
+  save();
+}
+function setEval(id,v){ active.draft.eval = active.draft.eval||{}; active.draft.eval[id]=v; save(); }
+function setRpe(id,v){
+  active.draft.rpe = active.draft.rpe||{};
+  active.draft.rpe[id] = (id==='cabeza'||id==='cabezaNota') ? v : parseInt(v,10);
+  if (['esfuerzo','fatiga','muscular','sueno'].includes(id)){ const el=document.getElementById('sv-'+id); if(el) el.textContent = v+'/10'; }
+  if (id==='cabeza'){
+    document.getElementById('hf-yes').className = v==='si'?'yes-on':'';
+    document.getElementById('hf-no').className = v!=='si'?'no-on':'';
+    const cn = document.getElementById('cabeza-nota'); if(cn) cn.style.display = v==='si'?'':'none';
+  }
+  save();
 }
 
-document.getElementById('btn-clear-log').addEventListener('click', () => {
-  currentLog = [];
-  actionCounts = newActionCounts();
-  ACTIONS.forEach(a => {
-    const el = document.getElementById(`count-${a.key}`);
-    if (el) el.textContent = '0';
-  });
-  renderLog();
-});
-
-function setTodayDate() {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('input-fecha').value = today;
+/* ---------- GUARDAR PARTIDO ---------- */
+function saveMatch(){
+  const c = active.draft.counts;
+  if (active.draft.log.length===0){ toast('Registrá al menos una acción', true); showTab('reg'); return; }
+  const pos = active.draft.matchPos || active.pos;
+  const ratings = active.draft.ratings || suggestRatings(c);
+  const idx = weightedIndex(ratings, pos);
+  const k = calc(c);
+  const match = {
+    id: 'm_'+Date.now(),
+    rival: (document.getElementById('m-rival').value||'').trim() || active.draft.rival || 'Rival',
+    date: active.draft.date || new Date().toISOString().slice(0,10),
+    pos, minute: active.draft.minute||0,
+    counts: JSON.parse(JSON.stringify(c)),
+    kpis: k, ratings, index: idx, stars: starsFromIndex(idx),
+    eval: JSON.parse(JSON.stringify(active.draft.eval||{})),
+    rpe: JSON.parse(JSON.stringify(active.draft.rpe||{})),
+    notes: JSON.parse(JSON.stringify(active.draft.notes))
+  };
+  active.matches.push(match);
+  clearCurrent(true);
+  active.draft.ratings = null;
+  save();
+  toast('Partido guardado ✓');
+  showTab('hist');
 }
 
-document.getElementById('btn-save-match').addEventListener('click', async () => {
-  const rival = document.getElementById('input-rival').value.trim();
-  const fecha = document.getElementById('input-fecha').value;
-  const posicion = document.getElementById('input-posicion').value;
-  const resultado = document.getElementById('input-resultado').value.trim();
-  const minutos = parseInt(document.getElementById('input-minutos').value) || 80;
-  const nota = parseFloat(document.getElementById('input-nota').value) || null;
-  if (!rival || !fecha) return showToast('⚠️ Completá rival y fecha');
-  const btn = document.getElementById('btn-save-match');
-  btn.disabled = true;
-  btn.textContent = 'Guardando...';
-  try {
-    const matchData = { rival, fecha, posicion, resultado, minutos, nota, acciones: { ...actionCounts } };
-    const id = await saveMatch(matchData);
-    allMatches.unshift({ id, ...matchData, timestamp: { toDate: () => new Date() } });
-    document.getElementById('input-rival').value = '';
-    document.getElementById('input-resultado').value = '';
-    document.getElementById('input-minutos').value = '';
-    document.getElementById('input-nota').value = '';
-    setTodayDate();
-    currentLog = [];
-    actionCounts = newActionCounts();
-    ACTIONS.forEach(a => {
-      const el = document.getElementById(`count-${a.key}`);
-      if (el) el.textContent = '0';
-    });
-    renderLog();
-    renderKPIs();
-    renderTemporada();
-    renderExport();
-    showToast('✅ Partido guardado');
-  } catch(e) { showToast('❌ Error al guardar'); }
-  btn.disabled = false;
-  btn.textContent = '💾 Guardar partido';
-});
-
-function calcKPIs(matches) {
-  if (!matches.length) return null;
-  let totales = newActionCounts();
-  let sumaNotas = 0, notasCount = 0, sumaMinutos = 0;
-  matches.forEach(m => {
-    Object.keys(totales).forEach(k => { totales[k] += (m.acciones?.[k] || 0); });
-    if (m.nota) { sumaNotas += m.nota; notasCount++; }
-    sumaMinutos += (m.minutos || 80);
-  });
-  const totalTackles = totales.tackles_buenos + totales.tackles_fallados;
-  const efectividadTackle = totalTackles > 0 ? Math.round((totales.tackles_buenos / totalTackles) * 100) : 0;
-  const pctDominantes = totales.tackles_buenos > 0 ? Math.round((totales.tackles_dominantes / totales.tackles_buenos) * 100) : 0;
-  const notaMedia = notasCount > 0 ? (sumaNotas / notasCount).toFixed(1) : '—';
-  const promedioMinutos = Math.round(sumaMinutos / matches.length);
-  const impactoPonderado = (
-    totales.tackles_buenos * 1 + totales.tackles_dominantes * 1.5 +
-    totales.turnovers_gen * 2 + totales.tries * 3 + totales.rucks_ganados * 0.5 -
-    totales.tackles_fallados * 0.8 - totales.turnovers_ced * 1.5 - totales.penales_cometidos * 1
-  ).toFixed(1);
-  return { totales, efectividadTackle, pctDominantes, notaMedia, promedioMinutos, impactoPonderado, numPartidos: matches.length };
-}
-
-function kpiColor(val, verde, amarillo) {
-  if (val >= verde) return 'var(--green)';
-  if (val >= amarillo) return 'var(--yellow)';
-  return 'var(--red)';
-}
-
-function renderKPIs() {
-  const container = document.getElementById('kpis-content');
-  if (!allMatches.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">Cargá el primer partido para ver los KPIs</div></div>';
+/* ---------- TEMPORADA ---------- */
+let charts = [];
+function renderHistory(){
+  charts.forEach(c => { try{c.destroy();}catch(e){} }); charts = [];
+  const el = document.getElementById('hist-content');
+  const m = active.matches;
+  if (m.length===0){
+    el.innerHTML = `<div class="empty" style="padding:50px 20px;">${active.name} todavía no tiene partidos guardados.<br><br>Registrá acciones en "Registrar", evaluá en "Evaluar" y guardá.</div>`;
     return;
   }
-  const kpi = calcKPIs(allMatches);
-  const last = allMatches[0];
-  const kpiLast = calcKPIs([last]);
-  container.innerHTML = `
-    <div class="section-title">Último partido — ${last.rival || '—'}</div>
-    <div class="last-match-card">
-      <div class="last-match-header">
-        <div>
-          <div class="last-match-title">${last.rival || '—'} · ${last.posicion || '—'}</div>
-          <div class="last-match-meta">${formatDate(last.fecha)} · ${last.minutos || 80} min</div>
-        </div>
-        <div>
-          <div class="last-match-result">${last.resultado || '—'}</div>
-          ${last.nota ? `<div style="font-size:12px;color:var(--text-muted);text-align:right">Nota: ${last.nota}/10</div>` : ''}
-        </div>
-      </div>
-      <div class="last-match-stats">
-        <div class="stat-mini">
-          <div class="stat-mini-val" style="color:${kpiColor(kpiLast.efectividadTackle,80,60)}">${kpiLast.efectividadTackle}%</div>
-          <div class="stat-mini-lbl">Efect. tackle</div>
-        </div>
-        <div class="stat-mini">
-          <div class="stat-mini-val" style="color:var(--green)">${last.acciones?.tries || 0}</div>
-          <div class="stat-mini-lbl">Tries</div>
-        </div>
-        <div class="stat-mini">
-          <div class="stat-mini-val" style="color:${parseFloat(kpiLast.impactoPonderado) >= 0 ? 'var(--green)' : 'var(--red)'}">${kpiLast.impactoPonderado > 0 ? '+' : ''}${kpiLast.impactoPonderado}</div>
-          <div class="stat-mini-lbl">Impacto</div>
-        </div>
-      </div>
+  const avgIdx = (m.reduce((s,x)=>s+x.index,0)/m.length).toFixed(2);
+  const avgTck = Math.round(m.reduce((s,x)=>s+x.kpis.tackles,0)/m.length);
+  const avgAcc = Math.round(m.reduce((s,x)=>s+x.kpis.acc_totales,0)/m.length);
+  let html = `
+    <div class="score-hero">
+      <div><div class="big" style="color:var(--oro)">${m.length}</div><div class="lbl">Partidos</div></div>
+      <div class="divider"></div>
+      <div><div class="big">${avgIdx}</div><div class="lbl">Índice prom.</div></div>
+      <div class="divider"></div>
+      <div><div class="big">${avgAcc}</div><div class="lbl">Acc. prom.</div></div>
     </div>
-    <div class="section-title">Promedios temporada (${kpi.numPartidos} partidos)</div>
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Efectividad tackle</div>
-        <div class="kpi-value" style="color:${kpiColor(kpi.efectividadTackle,80,60)}">${kpi.efectividadTackle}%</div>
-        <div class="kpi-sub">${kpi.totales.tackles_buenos}B / ${kpi.totales.tackles_fallados}F</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${kpi.efectividadTackle}%;background:${kpiColor(kpi.efectividadTackle,80,60)}"></div></div>
+    <div class="card"><div class="c-title">📈 Evolución del índice (1–5)</div><div class="chart-wrap" style="height:190px;"><canvas id="ch-idx"></canvas></div></div>
+    <div class="card"><div class="c-title">🛡️ Efectividad de tackle por partido</div><div class="chart-wrap" style="height:190px;"><canvas id="ch-eff"></canvas></div></div>
+    <div class="card"><div class="c-title">📊 Tackles y acciones totales</div><div class="chart-wrap" style="height:${Math.max(180,m.length*44+40)}px;"><canvas id="ch-acc"></canvas></div></div>`;
+  m.slice().reverse().forEach((x,ri) => {
+    const i = m.length-1-ri;
+    const ic = x.index>=4?'var(--verde)':x.index>=3?'var(--ambar)':'var(--naranja)';
+    const head = x.kpis.cabeza>0 || (x.rpe&&x.rpe.cabeza==='si') ? ' 🧠' : '';
+    html += `<div class="match-card">
+      <div class="mc-head">
+        <div><div class="mc-rival">vs ${x.rival}${head}</div><div class="mc-date">${x.date} · ${posLabel(x.pos)} · ${x.minute}'</div></div>
+        <div style="text-align:right;"><div class="mc-stars">${'★'.repeat(x.stars)}${'☆'.repeat(5-x.stars)}</div><div class="mc-idx" style="color:${ic}">${x.index.toFixed(2)}</div></div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Tackles dominantes</div>
-        <div class="kpi-value" style="color:${kpiColor(kpi.pctDominantes,25,15)}">${kpi.pctDominantes}%</div>
-        <div class="kpi-sub">${kpi.totales.tackles_dominantes} de ${kpi.totales.tackles_buenos}</div>
-        <div class="kpi-bar"><div class="kpi-bar-fill" style="width:${Math.min(kpi.pctDominantes,100)}%;background:${kpiColor(kpi.pctDominantes,25,15)}"></div></div>
+      <div class="mc-stats">
+        <div class="mc-stat"><div class="v ${cls(x.kpis.efectividad,85,70)}">${x.kpis.efectividad}%</div><div class="l">Tackle</div></div>
+        <div class="mc-stat"><div class="v">${x.kpis.exito_vent}%</div><div class="l">Ventaja</div></div>
+        <div class="mc-stat"><div class="v">${x.kpis.turnovers}</div><div class="l">Turnov.</div></div>
+        <div class="mc-stat"><div class="v">${x.kpis.penales}</div><div class="l">Penales</div></div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Turnovers generados</div>
-        <div class="kpi-value" style="color:var(--green)">${kpi.totales.turnovers_gen}</div>
-        <div class="kpi-sub">Total temporada</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Tries</div>
-        <div class="kpi-value" style="color:var(--red)">${kpi.totales.tries}</div>
-        <div class="kpi-sub">Total temporada</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Nota media</div>
-        <div class="kpi-value" style="color:${kpiColor(parseFloat(kpi.notaMedia)||0,8,6)}">${kpi.notaMedia}</div>
-        <div class="kpi-sub">Sobre 10</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Impacto ponderado</div>
-        <div class="kpi-value" style="color:${parseFloat(kpi.impactoPonderado)>=0?'var(--green)':'var(--red)'}">${parseFloat(kpi.impactoPonderado)>0?'+':''}${kpi.impactoPonderado}</div>
-        <div class="kpi-sub">Total acumulado</div>
-      </div>
-    </div>
-    <div class="section-title">Semáforo de rendimiento</div>
-    <div class="traffic-lights">
-      ${trafficLight('Efectividad de tackles', kpi.efectividadTackle + '%', kpi.efectividadTackle, 80, 60)}
-      ${trafficLight('Tackles dominantes', kpi.pctDominantes + '%', kpi.pctDominantes, 25, 15)}
-      ${trafficLight('Ratio turnover (G/C)', kpi.totales.turnovers_ced > 0 ? (kpi.totales.turnovers_gen / kpi.totales.turnovers_ced).toFixed(1) + 'x' : '—', kpi.totales.turnovers_ced > 0 ? kpi.totales.turnovers_gen / kpi.totales.turnovers_ced : 999, 2, 1)}
-      ${trafficLight('Penales cometidos', kpi.totales.penales_cometidos + ' total', kpi.numPartidos > 0 ? Math.max(0, 5 - kpi.totales.penales_cometidos/kpi.numPartidos*5) : 5, 4, 2)}
-    </div>
-  `;
+      <div class="mc-del" onclick="delMatch('${x.id}')">Eliminar partido</div>
+    </div>`;
+  });
+  el.innerHTML = html;
+  setTimeout(() => {
+    const labels = m.map(x => x.rival.length>8?x.rival.slice(0,8):x.rival);
+    Chart.defaults.color = '#B0A89C'; Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+    charts.push(new Chart(document.getElementById('ch-idx'), { type:'line',
+      data:{ labels, datasets:[{ data:m.map(x=>x.index), borderColor:'#C9A24B', backgroundColor:'rgba(201,162,75,0.14)', fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:'#C9A24B', borderWidth:2.5 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{min:0,max:5,ticks:{stepSize:1,font:{size:10}}}, x:{ticks:{font:{size:10}}} } } }));
+    charts.push(new Chart(document.getElementById('ch-eff'), { type:'line',
+      data:{ labels, datasets:[{ data:m.map(x=>x.kpis.efectividad), borderColor:'#1D9E75', backgroundColor:'rgba(29,158,117,0.12)', fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:'#1D9E75', borderWidth:2.5 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{min:0,max:100,ticks:{font:{size:10}}}, x:{ticks:{font:{size:10}}} } } }));
+    charts.push(new Chart(document.getElementById('ch-acc'), { type:'bar',
+      data:{ labels, datasets:[ { label:'Tackles', data:m.map(x=>x.kpis.tackles), backgroundColor:'#C9A24B' }, { label:'Acc. totales', data:m.map(x=>x.kpis.acc_totales), backgroundColor:'#6B4423' } ] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true,labels:{font:{size:11},boxWidth:12}}}, scales:{ y:{ticks:{font:{size:10}}}, x:{ticks:{font:{size:10}}} } } }));
+  }, 60);
 }
-
-function trafficLight(label, value, num, green, yellow) {
-  const color = num >= green ? 'var(--green)' : num >= yellow ? 'var(--yellow)' : 'var(--red)';
-  return `
-    <div class="tl-row">
-      <span class="tl-label">${label}</span>
-      <div class="tl-right">
-        <span class="tl-value" style="color:${color}">${value}</span>
-        <div class="tl-dot" style="background:${color}"></div>
-      </div>
-    </div>
-  `;
-}
-
-function renderTemporada() {
-  const container = document.getElementById('temporada-content');
-  if (!allMatches.length) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">Cargá el primer partido para ver la temporada</div></div>';
-    return;
+function delMatch(id){
+  if (confirm('¿Eliminar este partido?')){
+    active.matches = active.matches.filter(x=>x.id!==id);
+    save(); renderHistory(); toast('Partido eliminado');
   }
-  const sorted = [...allMatches].sort((a, b) => a.fecha?.localeCompare(b.fecha));
-  container.innerHTML = `
-    <div class="chart-card">
-      <div class="chart-title">Efectividad de tackles por partido</div>
-      <div class="chart-container"><canvas id="chart-tackles"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">Nota por partido</div>
-      <div class="chart-container"><canvas id="chart-notas"></canvas></div>
-    </div>
-    <div class="section-title">Historial de partidos</div>
-    <div class="match-history">
-      ${allMatches.map(m => matchCard(m)).join('')}
-    </div>
-  `;
-  const labels = sorted.map(m => m.rival || '?');
-  const efects = sorted.map(m => {
-    const total = (m.acciones?.tackles_buenos || 0) + (m.acciones?.tackles_fallados || 0);
-    return total > 0 ? Math.round((m.acciones.tackles_buenos / total) * 100) : 0;
-  });
-  if (charts.tackles) charts.tackles.destroy();
-  charts.tackles = new Chart(document.getElementById('chart-tackles').getContext('2d'), {
-    type: 'bar',
-    data: { labels, datasets: [{ data: efects, backgroundColor: efects.map(v => v >= 80 ? '#22c55e' : v >= 60 ? '#f59e0b' : '#C8102E'), borderRadius: 6 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 100, ticks: { color: '#888', callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#888' }, grid: { display: false } } } }
-  });
-  const notas = sorted.map(m => m.nota || null);
-  if (charts.notas) charts.notas.destroy();
-  charts.notas = new Chart(document.getElementById('chart-notas').getContext('2d'), {
-    type: 'line',
-    data: { labels, datasets: [{ data: notas, borderColor: '#C8102E', backgroundColor: 'rgba(200,16,46,0.1)', fill: true, tension: 0.3, pointBackgroundColor: '#C8102E', pointRadius: 5, spanGaps: true }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { min: 0, max: 10, ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#888' }, grid: { display: false } } } }
-  });
-  container.querySelectorAll('.btn-delete-match').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const id = e.currentTarget.dataset.id;
-      if (!confirm('¿Eliminar este partido?')) return;
-      try {
-        await deleteMatch(id);
-        allMatches = allMatches.filter(m => m.id !== id);
-        renderKPIs(); renderTemporada(); renderExport();
-        showToast('🗑️ Partido eliminado');
-      } catch(err) { showToast('❌ Error al eliminar'); }
+}
+
+/* ---------- EXPORTAR (todos los jugadores) ---------- */
+function buildCSV(){
+  const header = ['Jugador','Numero','Fecha','Rival','Posicion','Minutos','Indice','Estrellas','Impacto',
+    'Tackles comp','Tackles err','% Efectividad','Tackles dom','Carries','Carries pos','% Linea ventaja',
+    '% Conservacion','Metros','Metros postcont','Quiebres','Turnovers','Rucks of llegadas','% Rucks efect',
+    'Lineout recep','% Lineout','Penales','Knock-ons','Acc utiles','Acc totales','Tries','Try assists',
+    'RPE','Fatiga','Muscular','Sueno','Golpe cabeza'];
+  const rows = [];
+  store.players.forEach(p => {
+    p.matches.forEach(x => {
+      const k = x.kpis, r = x.rpe||{};
+      rows.push([
+        '"'+p.name+'"', p.num, x.date, '"'+x.rival+'"', '"'+posLabel(x.pos)+'"', x.minute,
+        x.index.toFixed(2), x.stars, k.impacto,
+        k.tackles, k.tk_err, k.efectividad, k.tk_dom, k.carries, k.carry_pos, k.exito_vent,
+        k.conservacion, k.metros, k.m_post, k.quiebres, k.turnovers, k.ruck_lleg, k.ruck_efect,
+        k.lo_recep, k.lo_efect, k.penales, k.knock, k.utiles, k.acc_totales, k.tries, k.try_assist,
+        r.esfuerzo||'', r.fatiga||'', r.muscular||'', r.sueno||'', (r.cabeza==='si'||k.cabeza>0)?'SI':'no'
+      ].join(','));
     });
   });
+  return [header.join(','), ...rows].join('\n');
 }
-
-function matchCard(m) {
-  const total = (m.acciones?.tackles_buenos || 0) + (m.acciones?.tackles_fallados || 0);
-  const efect = total > 0 ? Math.round((m.acciones.tackles_buenos / total) * 100) : 0;
-  return `
-    <div class="match-card">
-      <div class="match-card-left">
-        <div class="match-card-rival">vs. ${m.rival || '—'}</div>
-        <div class="match-card-meta">${formatDate(m.fecha)} · ${m.posicion || '—'} · ${m.minutos || 80}min</div>
-        <div class="match-card-actions">🏉${m.acciones?.tries||0} · 💪${m.acciones?.tackles_buenos||0}B/${m.acciones?.tackles_fallados||0}F · 🔥${m.acciones?.tackles_dominantes||0}</div>
-      </div>
-      <div class="match-card-right">
-        <div class="match-card-score">${m.resultado || '—'}</div>
-        <div style="font-size:11px;color:var(--text-muted)">Efect: ${efect}%${m.nota ? ` · ${m.nota}/10` : ''}</div>
-        <button class="btn-delete-match" data-id="${m.id}">🗑️</button>
-      </div>
-    </div>
-  `;
+function renderExport(){
+  const total = store.players.reduce((s,p)=>s+p.matches.length,0);
+  document.getElementById('csv-box').textContent = total ? buildCSV() : 'Sin partidos guardados todavía.';
 }
-
-function renderExport() {
-  const kpi = allMatches.length ? calcKPIs(allMatches) : null;
-  document.getElementById('exp-partidos').textContent = allMatches.length;
-  document.getElementById('exp-tries').textContent = kpi ? kpi.totales.tries : 0;
-  document.getElementById('exp-tackles').textContent = kpi ? kpi.totales.tackles_buenos : 0;
-  document.getElementById('exp-efectividad').textContent = kpi ? kpi.efectividadTackle + '%' : '—';
+function copyCSV(){
+  const total = store.players.reduce((s,p)=>s+p.matches.length,0);
+  if(!total){ toast('No hay datos', true); return; }
+  const csv = buildCSV();
+  if (navigator.clipboard) navigator.clipboard.writeText(csv).then(()=>toast('CSV copiado ✓')).catch(()=>fallbackCopy(csv));
+  else fallbackCopy(csv);
 }
-
-document.getElementById('btn-export-csv').addEventListener('click', () => {
-  if (!allMatches.length) return showToast('No hay datos para exportar');
-  const headers = ['Fecha','Rival','Posicion','Resultado','Minutos','Nota',...ACTIONS.map(a => a.label),'Efectividad%','Impacto'];
-  const rows = allMatches.map(m => {
-    const kpi = calcKPIs([m]);
-    return [m.fecha||'', m.rival||'', m.posicion||'', m.resultado||'', m.minutos||80, m.nota||'', ...ACTIONS.map(a => m.acciones?.[a.key]||0), kpi.efectividadTackle, kpi.impactoPonderado];
-  });
-  downloadCSV('pedro32_temporada.csv', [headers, ...rows]);
-  showToast('📥 CSV descargado');
-});
-
-document.getElementById('btn-export-resumen').addEventListener('click', () => {
-  if (!allMatches.length) return showToast('No hay datos para exportar');
-  const headers = ['Fecha','Rival','Resultado','Efect.Tackle%','Tries','Tackles Buenos','Tackles Fallados','Dominantes','Turnovers Gen.','Turnovers Ced.','Nota','Impacto'];
-  const rows = allMatches.map(m => {
-    const kpi = calcKPIs([m]);
-    return [m.fecha||'', m.rival||'', m.resultado||'', kpi.efectividadTackle, m.acciones?.tries||0, m.acciones?.tackles_buenos||0, m.acciones?.tackles_fallados||0, m.acciones?.tackles_dominantes||0, m.acciones?.turnovers_gen||0, m.acciones?.turnovers_ced||0, m.nota||'', kpi.impactoPonderado];
-  });
-  downloadCSV('pedro32_resumen.csv', [headers, ...rows]);
-  showToast('📋 Resumen descargado');
-});
-
-function downloadCSV(filename, rows) {
-  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+function fallbackCopy(t){
+  const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); toast('CSV copiado ✓'); }catch(e){ toast('No se pudo copiar', true); }
+  document.body.removeChild(ta);
+}
+function downloadCSV(){
+  const total = store.players.reduce((s,p)=>s+p.matches.length,0);
+  if(!total){ toast('No hay datos', true); return; }
+  const blob = new Blob([buildCSV()], {type:'text/csv;charset=utf-8'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
+  const a = document.createElement('a'); a.href=url; a.download='rugby_temporada_2026.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  toast('Descargando...');
 }
 
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const panel = btn.dataset.panel;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(`panel-${panel}`).classList.add('active');
+/* ---------- ROSTER MODAL ---------- */
+function openRoster(){ renderRoster(); document.getElementById('roster-modal').classList.add('show'); }
+function closeRoster(){ document.getElementById('roster-modal').classList.remove('show'); }
+function renderRoster(){
+  const el = document.getElementById('roster-list');
+  el.innerHTML = store.players.map(p => `
+    <div class="roster-item ${p.id===store.activeId?'active':''}">
+      <div class="jersey" style="border-color:${p.id===store.activeId?'var(--oro)':'rgba(233,210,160,0.3)'};background:var(--surface);color:var(--text);">${p.num||'–'}</div>
+      <div class="ri-info" onclick="selectPlayer('${p.id}')" style="cursor:pointer;">
+        <div class="ri-name">${p.name}</div>
+        <div class="ri-pos">${posLabel(p.pos)} · ${p.matches.length} part.</div>
+      </div>
+      <button class="ri-act" onclick="editPlayer('${p.id}')">✏️</button>
+      ${store.players.length>1?`<button class="ri-act" onclick="deletePlayer('${p.id}')">🗑️</button>`:''}
+    </div>`).join('');
+  const sel = document.getElementById('new-pos');
+  if (!sel.children.length) fillPosSelect(sel, 7);
+}
+function selectPlayer(id){ setActive(id); closeRoster(); toast('Jugador: '+active.name); }
+function addPlayer(){
+  const name = document.getElementById('new-name').value.trim();
+  const num = document.getElementById('new-num').value.trim();
+  const pos = parseInt(document.getElementById('new-pos').value,10);
+  if(!name){ toast('Poné un nombre', true); return; }
+  const p = newPlayer(name, num, pos);
+  store.players.push(p); save();
+  document.getElementById('new-name').value=''; document.getElementById('new-num').value='';
+  renderRoster(); toast(name+' agregado ✓');
+}
+function editPlayer(id){
+  const p = store.players.find(x=>x.id===id);
+  const name = prompt('Nombre del jugador:', p.name); if(name===null) return;
+  const num = prompt('Número:', p.num); if(num===null) return;
+  const posList = POSITIONS.map(x=>x.n+'='+x.label).join('\n');
+  const pos = prompt('Posición (número 1-15):\n'+posList, p.pos); if(pos===null) return;
+  p.name = name.trim()||p.name; p.num = (num||'').trim();
+  const pn = parseInt(pos,10); if(pn>=1&&pn<=15) p.pos = pn;
+  save(); renderRoster();
+  if(id===store.activeId){ renderTopbar(); renderMatchBar(); }
+  toast('Actualizado ✓');
+}
+function deletePlayer(id){
+  if(store.players.length<=1) return;
+  const p = store.players.find(x=>x.id===id);
+  if(!confirm('¿Eliminar a '+p.name+' y todos sus partidos?')) return;
+  store.players = store.players.filter(x=>x.id!==id);
+  if(store.activeId===id){ store.activeId = store.players[0].id; active = store.players[0]; }
+  save(); renderRoster(); refreshAll(); toast('Jugador eliminado');
+}
+
+/* ---------- TABS / REFRESH ---------- */
+function showTab(t){
+  ['reg','kpi','eval','hist','exp'].forEach(x => {
+    document.getElementById('s-'+x).classList.toggle('active', x===t);
+    document.getElementById('tb-'+x).classList.toggle('active', x===t);
   });
-});
-
-function formatDate(dateStr) {
-  if (!dateStr) return '—';
-  const [y, m, d] = dateStr.split('-');
-  return `${d}/${m}/${y}`;
+  document.getElementById('match-bar').style.display = (t==='reg') ? 'flex' : 'none';
+  if(t==='kpi') renderKPIs();
+  if(t==='eval') renderEval();
+  if(t==='hist') renderHistory();
+  if(t==='exp') renderExport();
+  window.scrollTo(0,0);
+}
+function refreshAll(){ renderTopbar(); renderMatchBar(); renderGroups(); renderLog(); setNoteTypeUI(); }
+function setNoteTypeUI(){
+  const t = active.draft.noteType||'bien';
+  document.getElementById('nt-bien').className = t==='bien'?'sel-bien':'';
+  document.getElementById('nt-mal').className = t==='mal'?'sel-mal':'';
 }
 
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2500);
+let toastTimer;
+function toast(msg, err){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.style.background = err?'var(--naranja)':'var(--verde)';
+  el.classList.add('show'); clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 2000);
 }
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt=e; document.getElementById('install-banner').classList.add('show'); });
+function installApp(){ if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>{ document.getElementById('install-banner').classList.remove('show'); deferredPrompt=null; }); } }
+
+/* ---------- INIT ---------- */
+load();
+refreshAll();
 </script>
 </body>
 </html>
