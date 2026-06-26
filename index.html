@@ -381,7 +381,7 @@ table.data tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
     Incluye los partidos de <b>todos los jugadores</b> del plantel.
   </div>
   <div id="backup-box"></div>
-  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v6.1</div>
+  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v6.2</div>
 </div>
 
 </div>
@@ -1274,6 +1274,7 @@ const FB_CONFIG = {
   appId: "1:958071981045:web:dc3db2ab32d382ef1956bc"
 };
 const CLOUD_KEY_LS = 'rugby_cloud_key';
+const DEFAULT_CLOUD_KEY = 'Cerro9897';  // clave precargada: se conecta sola sin tener que escribirla
 let cloud = { key:null, db:null, ready:false, authed:false, unsub:null, saveTimer:null, applying:false, statusOk:null, statusMsg:'' };
 
 function cloudInit(){
@@ -1284,8 +1285,8 @@ function cloudInit(){
     cloudStatus(null,'Conectando con la nube…');
     firebase.auth().signInAnonymously().then(()=>{
       cloud.authed = true;
-      const k = localStorage.getItem(CLOUD_KEY_LS);
-      if (k) cloudConnect(k); else cloudStatus(null,'Sin conectar — entrá tu clave');
+      const k = localStorage.getItem(CLOUD_KEY_LS) || DEFAULT_CLOUD_KEY;
+      cloudConnect(k);
       renderCloud();
     }).catch(e=>{ cloudStatus(false,'Auth: '+(e.code||e)); });
   } catch(e){ cloudStatus(false, String(e)); }
