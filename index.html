@@ -381,7 +381,7 @@ table.data tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
     Incluye los partidos de <b>todos los jugadores</b> del plantel.
   </div>
   <div id="backup-box"></div>
-  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v6</div>
+  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v6.1</div>
 </div>
 
 </div>
@@ -564,6 +564,7 @@ function load(){
   } catch(e){}
   if (!store.players || store.players.length === 0){
     const p = newPlayer('Pedro', '32', 7);
+    p.id = 'p_default';   // id estable para que el jugador por defecto se fusione entre dispositivos
     store = { players:[p], activeId: p.id };
   }
   // sanity: asegurar counts completos
@@ -1324,9 +1325,22 @@ function cloudSerialize(){
   return { activeId: store.activeId, updatedAt: Date.now(),
     players: store.players.map(p => ({ id:p.id, name:p.name, num:p.num, pos:p.pos, matches: p.matches||[] })) };
 }
+function isPristine(){
+  return store.players.length===1 && (store.players[0].matches||[]).length===0
+    && (store.players[0].draft && (store.players[0].draft.log||[]).length===0);
+}
 function cloudApply(data){
-  if(!data || !Array.isArray(data.players)) return;
+  if(!data || !Array.isArray(data.players) || data.players.length===0) return;
   cloud.applying = true;
+  // dispositivo "nuevo/vacío": adoptar los datos de la nube tal cual (evita Pedro duplicado)
+  if (isPristine()){
+    store.players = data.players.map(rp => {
+      const np = newPlayer(rp.name, rp.num, rp.pos); np.id = rp.id; np.matches = rp.matches||[]; return np;
+    });
+    store.activeId = (data.activeId && store.players.find(p=>p.id===data.activeId)) ? data.activeId : store.players[0].id;
+    active = store.players.find(p=>p.id===store.activeId) || store.players[0];
+    saveLocal(); cloud.applying = false; return;
+  }
   const byId = {};
   store.players.forEach(p => { byId[p.id] = p; });
   data.players.forEach(rp => {
