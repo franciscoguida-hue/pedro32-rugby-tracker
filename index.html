@@ -365,6 +365,7 @@ table.data tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
 
 <!-- TAB DATOS -->
 <div class="section" id="s-exp">
+  <div id="cloud-box"></div>
   <div class="section-title">Todos los partidos cargados</div>
   <div id="data-table"></div>
 
@@ -380,7 +381,7 @@ table.data tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
     Incluye los partidos de <b>todos los jugadores</b> del plantel.
   </div>
   <div id="backup-box"></div>
-  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v5</div>
+  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v6</div>
 </div>
 
 </div>
@@ -415,6 +416,9 @@ table.data tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 <script>
 const STORAGE_KEY = 'rugby_tracker_v2';
 
@@ -551,7 +555,8 @@ function newPlayer(name, num, pos){
   };
 }
 
-function save(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch(e){} }
+function saveLocal(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); } catch(e){} }
+function save(){ saveLocal(); if (cloud.ready && !cloud.applying) cloudScheduleSave(); }
 function load(){
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1078,6 +1083,7 @@ function renderData(){
     <div class="data-scroll"><table class="data"><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 function renderExport(){
+  renderCloud();
   renderData();
   const total = store.players.reduce((s,p)=>s+p.matches.length,0);
   document.getElementById('csv-box').textContent = total ? buildCSV() : 'Sin partidos guardados todavía.';
@@ -1257,6 +1263,162 @@ let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt=e; document.getElementById('install-banner').classList.add('show'); });
 function installApp(){ if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>{ document.getElementById('install-banner').classList.remove('show'); deferredPrompt=null; }); } }
 
+/* ---------- SINCRONIZACIÓN EN LA NUBE (Firebase Firestore) ---------- */
+const FB_CONFIG = {
+  apiKey: "AIzaSyCobz764xcgmZjTHO5M_7-bnrbvzbKp54Q",
+  authDomain: "pedro32-rugby.firebaseapp.com",
+  projectId: "pedro32-rugby",
+  storageBucket: "pedro32-rugby.firebasestorage.app",
+  messagingSenderId: "958071981045",
+  appId: "1:958071981045:web:dc3db2ab32d382ef1956bc"
+};
+const CLOUD_KEY_LS = 'rugby_cloud_key';
+let cloud = { key:null, db:null, ready:false, authed:false, unsub:null, saveTimer:null, applying:false, statusOk:null, statusMsg:'' };
+
+function cloudInit(){
+  if (typeof firebase === 'undefined') { cloudStatus(false,'Sin conexión (no se cargó Firebase)'); return; }
+  try {
+    firebase.initializeApp(FB_CONFIG);
+    cloud.db = firebase.firestore();
+    cloudStatus(null,'Conectando con la nube…');
+    firebase.auth().signInAnonymously().then(()=>{
+      cloud.authed = true;
+      const k = localStorage.getItem(CLOUD_KEY_LS);
+      if (k) cloudConnect(k); else cloudStatus(null,'Sin conectar — entrá tu clave');
+      renderCloud();
+    }).catch(e=>{ cloudStatus(false,'Auth: '+(e.code||e)); });
+  } catch(e){ cloudStatus(false, String(e)); }
+}
+
+function cloudConnect(key){
+  key = (key||'').trim();
+  if(!key){ toast('Poné una clave', true); return; }
+  if(!cloud.db || !cloud.authed){ toast('La nube todavía no está lista', true); return; }
+  localStorage.setItem(CLOUD_KEY_LS, key);
+  cloud.key = key; cloud.ready = false;
+  cloudStatus(null,'Conectando…'); renderCloud();
+  if (cloud.unsub) { cloud.unsub(); cloud.unsub = null; }
+  const ref = cloud.db.collection('rugbyTeams').doc(key);
+  let first = true;
+  cloud.unsub = ref.onSnapshot(snap => {
+    if (snap.metadata.hasPendingWrites) return;
+    if (first) {
+      first = false;
+      if (!snap.exists) { cloud.ready = true; cloudPush(); cloudStatus(true,'Conectado — subiste tus datos'); }
+      else { cloudApply(snap.data()); cloud.ready = true; cloudPush(); cloudStatus(true,'Conectado y sincronizado'); cloudRerender(); }
+    } else {
+      cloudApply(snap.data()); cloudRerender(); cloudStatus(true,'Actualizado desde la nube');
+    }
+    renderCloud();
+  }, err => { cloud.ready=false; cloudStatus(false,'Error: '+(err.code||err)); renderCloud(); });
+}
+
+function cloudDisconnect(){
+  if(cloud.unsub){ cloud.unsub(); cloud.unsub=null; }
+  cloud.ready=false; cloud.key=null;
+  localStorage.removeItem(CLOUD_KEY_LS);
+  cloudStatus(null,'Desconectado (los datos quedan en este dispositivo)'); renderCloud();
+}
+
+function cloudSerialize(){
+  return { activeId: store.activeId, updatedAt: Date.now(),
+    players: store.players.map(p => ({ id:p.id, name:p.name, num:p.num, pos:p.pos, matches: p.matches||[] })) };
+}
+function cloudApply(data){
+  if(!data || !Array.isArray(data.players)) return;
+  cloud.applying = true;
+  const byId = {};
+  store.players.forEach(p => { byId[p.id] = p; });
+  data.players.forEach(rp => {
+    let p = byId[rp.id];
+    if(!p){ p = newPlayer(rp.name, rp.num, rp.pos); p.id = rp.id; p.matches = []; byId[rp.id]=p; store.players.push(p); }
+    if(rp.name!=null) p.name = rp.name; if(rp.num!=null) p.num = rp.num; if(rp.pos!=null) p.pos = rp.pos;
+    const mById = {}; (p.matches||[]).forEach(m=>mById[m.id]=m); (rp.matches||[]).forEach(m=>mById[m.id]=m);
+    p.matches = Object.values(mById);
+  });
+  if (data.activeId && byId[data.activeId]) store.activeId = data.activeId;
+  active = store.players.find(p=>p.id===store.activeId) || store.players[0];
+  store.activeId = active.id;
+  saveLocal();
+  cloud.applying = false;
+}
+function cloudScheduleSave(){ clearTimeout(cloud.saveTimer); cloud.saveTimer = setTimeout(cloudPush, 800); }
+function cloudPush(){
+  if(!cloud.ready || !cloud.db || !cloud.key) return;
+  cloud.db.collection('rugbyTeams').doc(cloud.key).set(cloudSerialize())
+    .then(()=>cloudStatus(true,'Guardado en la nube ✓'))
+    .catch(e=>cloudStatus(false,'No se pudo guardar: '+(e.code||e)));
+}
+function cloudStatus(ok,msg){ cloud.statusOk=ok; cloud.statusMsg=msg||''; renderCloudStatus(); }
+function cloudRerender(){
+  refreshAll();
+  const cur = ['reg','kpi','eval','hist','exp'].find(t=>{ const el=document.getElementById('s-'+t); return el && el.classList.contains('active'); }) || 'reg';
+  if(cur==='kpi') renderKPIs(); else if(cur==='eval') renderEval(); else if(cur==='hist') renderHistory(); else if(cur==='exp') renderExport();
+}
+
+/* importar los partidos viejos de la colección rugby_matches (esquema viejo) */
+function posFromOld(s){ const m = String(s||'').match(/(\d{1,2})\s*$/); const n = m?parseInt(m[1],10):0; return (n>=1&&n<=15)?n:(active?active.pos:7); }
+function mapOldMatch(docId, d){
+  const a = d.acciones||{};
+  const c = freshCounts();
+  c.tk_comp=a.tackles_buenos||0; c.tk_dom=a.tackles_dominantes||0; c.tk_err=a.tackles_fallados||0;
+  c.carry=a.carries||0; c.m_gan=a.metros_ganados||0;
+  c.ruck_of_gan=a.rucks_ganados||0; c.ruck_of_lleg=(a.rucks_ganados||0)+(a.rucks_perdidos||0);
+  c.lo_recep=a.lineouts_ganados||0; c.lo_salto=(a.lineouts_ganados||0)+(a.lineouts_perdidos||0);
+  c.pen=a.penales_cometidos||0; c.try=a.tries||0; c.turnover=a.turnovers_gen||0;
+  c.apoyo=a.trabajo_sin_balon||0; c.scrum_estable=a.impacto_scrum||0;
+  const pos = posFromOld(d.posicion);
+  const k = calc(c);
+  const ratings = suggestRatings(c);
+  const idx = weightedIndex(ratings, pos);
+  let pf='', pc='', resultado='';
+  const rm = String(d.resultado||'').match(/(\d+)\s*[-–]\s*(\d+)/);
+  if(rm){ pf=parseInt(rm[1],10); pc=parseInt(rm[2],10); resultado = pf>pc?'G':pf<pc?'P':'E'; }
+  return { id:'old_'+docId, rival:d.rival||'Rival', date:d.fecha||'', pos, minute:d.minutos||0,
+    pf, pc, resultado, counts:c, kpis:k, ratings, index:idx, stars:starsFromIndex(idx),
+    eval:{}, rpe:{}, notes:[], synced:true, imported:true };
+}
+async function importOldMatches(){
+  if(!cloud.ready){ toast('Conectá la nube primero', true); return; }
+  toast('Importando partidos viejos…');
+  try{
+    const snap = await cloud.db.collection('rugby_matches').get();
+    if(snap.empty){ toast('No hay partidos viejos'); return; }
+    const p = active;
+    const byId = {}; (p.matches||[]).forEach(m=>byId[m.id]=m);
+    let added=0;
+    snap.forEach(doc => { const m = mapOldMatch(doc.id, doc.data()); if(!byId[m.id]){ p.matches.push(m); byId[m.id]=m; added++; } });
+    save(); cloudPush(); cloudRerender();
+    toast(added? (added+' partido(s) viejo(s) importados ✓') : 'Ya estaban importados');
+  }catch(e){ toast('Error importando: '+(e.code||e), true); }
+}
+
+function renderCloudStatus(){
+  const el=document.getElementById('cloud-status'); if(!el) return;
+  const col = cloud.statusOk===true?'var(--verde)':cloud.statusOk===false?'var(--naranja)':'var(--text-3)';
+  const dot = cloud.ready?'🟢':'⚪';
+  el.innerHTML = `<span style="color:${col}">${dot} ${cloud.statusMsg||''}</span>`;
+}
+function renderCloud(){
+  const box=document.getElementById('cloud-box'); if(!box) return;
+  const key = cloud.key || localStorage.getItem(CLOUD_KEY_LS) || '';
+  const connected = cloud.ready;
+  box.innerHTML = `
+    <div class="section-title">☁️ Sincronización en la nube</div>
+    <div class="card">
+      <div style="font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:10px;">Entrá la misma clave en todos tus dispositivos para ver y guardar los mismos datos. Se sincroniza solo.</div>
+      <div class="eval-q"><label>Clave</label><input type="text" id="cloud-key" placeholder="tu clave" value="${key}" ${connected?'disabled':''}></div>
+      <div style="display:flex;gap:8px;">
+        ${connected
+          ? `<button class="btn-export sec" style="flex:1;margin:0;" onclick="cloudDisconnect()">Desconectar</button>`
+          : `<button class="btn-export" style="flex:1;margin:0;" onclick="cloudConnect(document.getElementById('cloud-key').value)">Conectar</button>`}
+      </div>
+      ${connected ? `<button class="btn-export sec" style="margin-top:8px;" onclick="importOldMatches()">⬇️ Importar mis partidos viejos (1 vez)</button>` : ''}
+      <div id="cloud-status" style="font-size:11px;margin-top:10px;text-align:center;"></div>
+    </div>`;
+  renderCloudStatus();
+}
+
 /* ---------- SERVICE WORKER (auto-actualización) ---------- */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -1273,6 +1435,7 @@ if ('serviceWorker' in navigator) {
 /* ---------- INIT ---------- */
 load();
 refreshAll();
+cloudInit();
 </script>
 </body>
 </html>

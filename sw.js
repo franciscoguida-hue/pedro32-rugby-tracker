@@ -3,7 +3,7 @@
    internet, y usa la copia guardada solo si estás sin conexión.
    Subí este archivo al repo junto a index.html (mismo nivel). */
 
-const VERSION = 'v5';
+const VERSION = 'v6';
 const CACHE = 'bac-rugby-' + VERSION;
 const CORE = ['./', './index.html'];
 
