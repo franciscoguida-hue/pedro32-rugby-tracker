@@ -381,7 +381,7 @@ table.data tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
     Incluye los partidos de <b>todos los jugadores</b> del plantel.
   </div>
   <div id="backup-box"></div>
-  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v6.2</div>
+  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v6.3</div>
 </div>
 
 </div>
@@ -1021,6 +1021,13 @@ function renderHistory(){
         <div class="mc-stat"><div class="v">${x.kpis.exito_vent}%</div><div class="l">Ventaja</div></div>
         <div class="mc-stat"><div class="v">${x.kpis.turnovers}</div><div class="l">Turnov.</div></div>
         <div class="mc-stat"><div class="v">${x.kpis.penales}</div><div class="l">Penales</div></div>
+      </div>
+      <div class="mc-stats" style="grid-template-columns:repeat(5,1fr); margin-top:8px; border-top:1px solid var(--border); padding-top:10px;">
+        <div class="mc-stat"><div class="v">${x.kpis.tackles}</div><div class="l">T. comp.</div></div>
+        <div class="mc-stat"><div class="v">${x.kpis.carries}</div><div class="l">Carries</div></div>
+        <div class="mc-stat"><div class="v">${x.kpis.metros}</div><div class="l">Metros</div></div>
+        <div class="mc-stat"><div class="v">${x.kpis.rucks}</div><div class="l">Rucks</div></div>
+        <div class="mc-stat"><div class="v">${x.kpis.lo_recep}</div><div class="l">Lineout</div></div>
       </div>
       <div class="mc-del" onclick="delMatch('${x.id}')">Eliminar partido</div>
     </div>`;
