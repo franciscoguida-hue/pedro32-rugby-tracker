@@ -381,7 +381,7 @@ table.data tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
     Incluye los partidos de <b>todos los jugadores</b> del plantel.
   </div>
   <div id="backup-box"></div>
-  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v6.3</div>
+  <div style="text-align:center; margin-top:18px; font-size:11px; color:var(--text-3);">Belgrano AC · Rugby Tracker — versión v6.4</div>
 </div>
 
 </div>
@@ -989,6 +989,7 @@ function renderHistory(){
   charts.forEach(c => { try{c.destroy();}catch(e){} }); charts = [];
   const el = document.getElementById('hist-content');
   const m = active.matches;
+  const ms = m.slice().sort((a,b)=> (a.date||'').localeCompare(b.date||''));  // cronológico: viejo arriba, reciente abajo
   if (m.length===0){
     el.innerHTML = `<div class="empty" style="padding:50px 20px;">${active.name} todavía no tiene partidos guardados.<br><br>Registrá acciones en "Registrar", evaluá en "Evaluar" y guardá.</div>`;
     return;
@@ -1007,8 +1008,7 @@ function renderHistory(){
     <div class="card"><div class="c-title">📈 Evolución del índice (1–5)</div><div class="chart-wrap" style="height:190px;"><canvas id="ch-idx"></canvas></div></div>
     <div class="card"><div class="c-title">🛡️ Efectividad de tackle por partido</div><div class="chart-wrap" style="height:190px;"><canvas id="ch-eff"></canvas></div></div>
     <div class="card"><div class="c-title">📊 Tackles y acciones totales</div><div class="chart-wrap" style="height:${Math.max(180,m.length*44+40)}px;"><canvas id="ch-acc"></canvas></div></div>`;
-  m.slice().reverse().forEach((x,ri) => {
-    const i = m.length-1-ri;
+  ms.forEach((x) => {
     const ic = x.index>=4?'var(--verde)':x.index>=3?'var(--ambar)':'var(--naranja)';
     const head = x.kpis.cabeza>0 || (x.rpe&&x.rpe.cabeza==='si') ? ' 🧠' : '';
     html += `<div class="match-card">
@@ -1034,16 +1034,16 @@ function renderHistory(){
   });
   el.innerHTML = html;
   setTimeout(() => {
-    const labels = m.map(x => x.rival.length>8?x.rival.slice(0,8):x.rival);
+    const labels = ms.map(x => x.rival.length>8?x.rival.slice(0,8):x.rival);
     Chart.defaults.color = '#B0A89C'; Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
     charts.push(new Chart(document.getElementById('ch-idx'), { type:'line',
-      data:{ labels, datasets:[{ data:m.map(x=>x.index), borderColor:'#C9A24B', backgroundColor:'rgba(201,162,75,0.14)', fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:'#C9A24B', borderWidth:2.5 }] },
+      data:{ labels, datasets:[{ data:ms.map(x=>x.index), borderColor:'#C9A24B', backgroundColor:'rgba(201,162,75,0.14)', fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:'#C9A24B', borderWidth:2.5 }] },
       options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{min:0,max:5,ticks:{stepSize:1,font:{size:10}}}, x:{ticks:{font:{size:10}}} } } }));
     charts.push(new Chart(document.getElementById('ch-eff'), { type:'line',
-      data:{ labels, datasets:[{ data:m.map(x=>x.kpis.efectividad), borderColor:'#1D9E75', backgroundColor:'rgba(29,158,117,0.12)', fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:'#1D9E75', borderWidth:2.5 }] },
+      data:{ labels, datasets:[{ data:ms.map(x=>x.kpis.efectividad), borderColor:'#1D9E75', backgroundColor:'rgba(29,158,117,0.12)', fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:'#1D9E75', borderWidth:2.5 }] },
       options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{ y:{min:0,max:100,ticks:{font:{size:10}}}, x:{ticks:{font:{size:10}}} } } }));
     charts.push(new Chart(document.getElementById('ch-acc'), { type:'bar',
-      data:{ labels, datasets:[ { label:'Tackles', data:m.map(x=>x.kpis.tackles), backgroundColor:'#C9A24B' }, { label:'Acc. totales', data:m.map(x=>x.kpis.acc_totales), backgroundColor:'#6B4423' } ] },
+      data:{ labels, datasets:[ { label:'Tackles', data:ms.map(x=>x.kpis.tackles), backgroundColor:'#C9A24B' }, { label:'Acc. totales', data:ms.map(x=>x.kpis.acc_totales), backgroundColor:'#6B4423' } ] },
       options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true,labels:{font:{size:11},boxWidth:12}}}, scales:{ y:{ticks:{font:{size:10}}}, x:{ticks:{font:{size:10}}} } } }));
   }, 60);
 }
